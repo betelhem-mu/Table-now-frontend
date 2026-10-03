@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../services/api";
+import type { AuthResponse, UserRole } from "../types";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -9,50 +10,53 @@ const Register = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<"customer" | "provider">("customer");
+  const [role, setRole] = useState<UserRole>("customer");
 
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
 
     setError("");
-    setSuccess("");
 
-    if (!name || !email || !password) {
-      setError("Name, email, and password are required");
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      setError("Please fill in all fields.");
       return;
     }
 
     if (password.length < 6) {
-      setError("Password must be at least 6 characters");
+      setError("Password must be at least 6 characters.");
       return;
     }
 
     try {
       setLoading(true);
 
-      await apiRequest("/auth/register", {
+      const data = await apiRequest<AuthResponse>("/auth/register", {
         method: "POST",
         body: JSON.stringify({
-          name,
-          email,
+          name: name.trim(),
+          email: email.trim(),
           password,
           role,
         }),
       });
 
-      setSuccess("Registration successful. You can now sign in.");
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
 
-      setName("");
-      setEmail("");
-      setPassword("");
-      setRole("customer");
+      if (data.user.role === "provider") {
+        navigate("/provider");
+      } else {
+        navigate("/customer");
+      }
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Registration failed"
+        err instanceof Error
+          ? err.message
+          : "Registration failed. Please try again."
       );
     } finally {
       setLoading(false);
@@ -60,72 +64,143 @@ const Register = () => {
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <h1>TableNow</h1>
-        <p>Create your account</p>
+    <main className="auth-page">
+      <div className="auth-background-glow auth-background-glow-one"></div>
+      <div className="auth-background-glow auth-background-glow-two"></div>
 
-        <form onSubmit={handleSubmit}>
-          <label>Name</label>
+      <section className="auth-card">
+        <div className="auth-brand">
+          <div className="brand-icon">B</div>
 
-          <input
-            type="text"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder="Enter your name"
-          />
+          <div>
+            <h1>BookEasy</h1>
+            <span>Smart booking made simple</span>
+          </div>
+        </div>
 
-          <label>Email</label>
+        <div className="auth-heading">
+          <h2>Create your account</h2>
+          <p>
+            Join BookEasy and manage your bookings with ease.
+          </p>
+        </div>
 
-          <input
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="Enter your email"
-          />
+        <form className="auth-form" onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="name">Full name</label>
 
-          <label>Password</label>
+            <input
+              id="name"
+              type="text"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              placeholder="Enter your full name"
+              autoComplete="name"
+            />
+          </div>
 
-          <input
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder="At least 6 characters"
-          />
+          <div className="form-group">
+            <label htmlFor="email">Email address</label>
 
-          <label>Account type</label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="you@example.com"
+              autoComplete="email"
+            />
+          </div>
 
-          <select
-            value={role}
-            onChange={(event) =>
-              setRole(event.target.value as "customer" | "provider")
-            }
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+
+            <div className="password-input-wrapper">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="Create a password"
+                autoComplete="new-password"
+              />
+
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword((value) => !value)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
+
+            <span className="input-hint">
+              Use at least 6 characters
+            </span>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="role">Account type</label>
+
+            <select
+              id="role"
+              value={role}
+              onChange={(event) =>
+                setRole(event.target.value as UserRole)
+              }
+            >
+              <option value="customer">Customer</option>
+              <option value="provider">Service Provider</option>
+            </select>
+
+            <span className="input-hint">
+              {role === "customer"
+                ? "Book and manage your appointments."
+                : "Offer services and manage customer bookings."}
+            </span>
+          </div>
+
+          {error && (
+            <div className="auth-error" role="alert">
+              <span>!</span>
+              {error}
+            </div>
+          )}
+
+          <button
+            className="primary-auth-button"
+            type="submit"
+            disabled={loading}
           >
-            <option value="customer">Customer</option>
-            <option value="provider">Service Provider</option>
-          </select>
-
-          {error && <p className="error-message">{error}</p>}
-
-          {success && <p className="success-message">{success}</p>}
-
-          <button type="submit" disabled={loading}>
-            {loading ? "Creating account..." : "Create Account"}
+            {loading ? (
+              <>
+                <span className="button-spinner"></span>
+                Creating account...
+              </>
+            ) : (
+              "Create Account"
+            )}
           </button>
         </form>
 
-        <p>
-          Already have an account?{" "}
-          <button
-            type="button"
-            className="link-button"
-            onClick={() => navigate("/login")}
-          >
-            Sign In
-          </button>
+        <div className="auth-divider">
+          <span>Already have an account?</span>
+        </div>
+
+        <button
+          type="button"
+          className="secondary-auth-button"
+          onClick={() => navigate("/login")}
+        >
+          Sign in to BookEasy
+        </button>
+
+        <p className="auth-footer">
+          By creating an account, you agree to our terms and privacy policy.
         </p>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 };
 

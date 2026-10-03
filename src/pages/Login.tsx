@@ -9,17 +9,20 @@ const Login = () => {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [remember, setRemember] = useState(false);
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
 
     setError("");
 
-    if (!email || !password) {
-      setError("Email and password are required");
+    if (!email.trim() || !password) {
+      setError("Please enter your email and password.");
       return;
     }
 
@@ -29,17 +32,18 @@ const Login = () => {
       const data = await apiRequest<AuthResponse>("/auth/login", {
         method: "POST",
         body: JSON.stringify({
-          email,
+          email: email.trim(),
           password,
         }),
       });
 
-      if (remember) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      if (rememberMe) {
+        localStorage.setItem("rememberMe", "true");
       } else {
-        sessionStorage.setItem("token", data.token);
-        sessionStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.removeItem("rememberMe");
       }
 
       if (data.user.role === "provider") {
@@ -49,7 +53,9 @@ const Login = () => {
       }
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Unable to sign in"
+        err instanceof Error
+          ? err.message
+          : "Login failed. Please check your credentials."
       );
     } finally {
       setLoading(false);
@@ -57,25 +63,33 @@ const Login = () => {
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-card">
+    <main className="auth-page">
+      <div className="auth-background-glow auth-background-glow-one"></div>
+      <div className="auth-background-glow auth-background-glow-two"></div>
+
+      <section className="auth-card">
         <div className="auth-brand">
-        <div className="brand-mark">B</div>
-          <div className="brand-name">BookEasy</div>
+          <div className="brand-icon">B</div>
+
+          <div>
+            <h1>BookEasy</h1>
+            <span>Smart booking made simple</span>
+          </div>
         </div>
 
-        <h1 className="auth-heading">Welcome</h1>
+        <div className="auth-heading">
+          <h2>Welcome back</h2>
+          <p>
+            Sign in to continue managing your bookings.
+          </p>
+        </div>
 
-        <p className="auth-subtitle">
-          Sign in to continue managing your reservations.
-        </p>
-
-        <form onSubmit={handleSubmit}>
+        <form className="auth-form" onSubmit={handleSubmit}>
           <div className="form-group">
-            <label htmlFor="email">Email address</label>
+            <label htmlFor="login-email">Email address</label>
 
             <input
-              id="email"
+              id="login-email"
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
@@ -85,53 +99,94 @@ const Login = () => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <div className="password-label-row">
+              <label htmlFor="login-password">Password</label>
 
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder="Enter your password"
-              autoComplete="current-password"
-            />
-          </div>
+              <button
+                type="button"
+                className="forgot-password"
+                onClick={() => {
+                  setError("Password recovery will be available soon.");
+                }}
+              >
+                Forgot password?
+              </button>
+            </div>
 
-          <div className="auth-options">
-            <label className="remember-me">
+            <div className="password-input-wrapper">
               <input
-                type="checkbox"
-                checked={remember}
-                onChange={(event) => setRemember(event.target.checked)}
+                id="login-password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="Enter your password"
+                autoComplete="current-password"
               />
 
-              <span>Remember me</span>
-            </label>
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword((value) => !value)}
+                aria-label={
+                  showPassword ? "Hide password" : "Show password"
+                }
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
           </div>
 
-          {error && <p className="error-message">{error}</p>}
+          <label className="remember-row">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(event) => setRememberMe(event.target.checked)}
+            />
+
+            <span>Remember me</span>
+          </label>
+
+          {error && (
+            <div className="auth-error" role="alert">
+              <span>!</span>
+              {error}
+            </div>
+          )}
 
           <button
-            className="auth-button"
+            className="primary-auth-button"
             type="submit"
             disabled={loading}
           >
-            {loading ? "Signing in..." : "Sign In"}
+            {loading ? (
+              <>
+                <span className="button-spinner"></span>
+                Signing in...
+              </>
+            ) : (
+              "Sign In"
+            )}
           </button>
         </form>
 
-        <div className="auth-footer">
-          Don't have an account?{" "}
-          <button
-            type="button"
-            className="link-button"
-            onClick={() => navigate("/register")}
-          >
-            Create an account
-          </button>
+        <div className="auth-divider">
+          <span>New to BookEasy?</span>
         </div>
-      </div>
-    </div>
+
+        <button
+          type="button"
+          className="secondary-auth-button"
+          onClick={() => navigate("/register")}
+        >
+          Create an account
+        </button>
+
+        <p className="auth-footer">
+          Securely manage your bookings, reservations, and services
+          with BookEasy.
+        </p>
+      </section>
+    </main>
   );
 };
 
