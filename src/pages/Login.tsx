@@ -9,10 +9,11 @@ const Login = () => {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [remember, setRemember] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (event: FormEvent) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     setError("");
@@ -33,8 +34,13 @@ const Login = () => {
         }),
       });
 
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
+      if (remember) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+      } else {
+        sessionStorage.setItem("token", data.token);
+        sessionStorage.setItem("user", JSON.stringify(data.user));
+      }
 
       if (data.user.role === "provider") {
         navigate("/provider");
@@ -43,7 +49,7 @@ const Login = () => {
       }
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Login failed"
+        err instanceof Error ? err.message : "Unable to sign in"
       );
     } finally {
       setLoading(false);
@@ -53,45 +59,77 @@ const Login = () => {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <h1>TableNow</h1>
-        <p>Sign in to your account</p>
+        <div className="auth-brand">
+        <div className="brand-mark">B</div>
+          <div className="brand-name">BookEasy</div>
+        </div>
+
+        <h1 className="auth-heading">Welcome</h1>
+
+        <p className="auth-subtitle">
+          Sign in to continue managing your reservations.
+        </p>
 
         <form onSubmit={handleSubmit}>
-          <label>Email</label>
+          <div className="form-group">
+            <label htmlFor="email">Email address</label>
 
-          <input
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="Enter your email"
-          />
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="you@example.com"
+              autoComplete="email"
+            />
+          </div>
 
-          <label>Password</label>
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
 
-          <input
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder="Enter your password"
-          />
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="Enter your password"
+              autoComplete="current-password"
+            />
+          </div>
+
+          <div className="auth-options">
+            <label className="remember-me">
+              <input
+                type="checkbox"
+                checked={remember}
+                onChange={(event) => setRemember(event.target.checked)}
+              />
+
+              <span>Remember me</span>
+            </label>
+          </div>
 
           {error && <p className="error-message">{error}</p>}
 
-          <button type="submit" disabled={loading}>
+          <button
+            className="auth-button"
+            type="submit"
+            disabled={loading}
+          >
             {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
 
-        <p>
+        <div className="auth-footer">
           Don't have an account?{" "}
           <button
             type="button"
             className="link-button"
             onClick={() => navigate("/register")}
           >
-            Register
+            Create an account
           </button>
-        </p>
+        </div>
       </div>
     </div>
   );
