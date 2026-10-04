@@ -1,16 +1,37 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import Customer from "./pages/Customer";
+import Booking from "./pages/Booking";
 import "./App.css";
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route
+        path="/"
+        element={<Navigate to="/login" replace />}
+      />
 
-      <Route path="/login" element={<Login />} />
+      <Route
+        path="/login"
+        element={<Login />}
+      />
 
-      <Route path="/register" element={<Register />} />
+      <Route
+        path="/register"
+        element={<Register />}
+      />
+
+      <Route
+        path="/customer"
+        element={<Customer />}
+      />
+
+      <Route
+        path="/services/:id/book"
+        element={<Booking />}
+      />
 
       <Route
         path="*"

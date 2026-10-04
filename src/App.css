@@ -379,3 +379,581 @@
   accent-color: #d4934e;
   cursor: pointer;
 }
+/* ================================
+   BOOKEASY CUSTOMER DASHBOARD
+   ================================ */
+
+   .customer-page {
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at 85% 10%, rgba(196, 133, 67, 0.08), transparent 30%),
+      #0b0b0d;
+    color: #f5f2ed;
+  }
+  
+  /* NAVBAR */
+  
+  .customer-navbar {
+    width: 100%;
+    height: 76px;
+    padding: 0 5%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    background: rgba(11, 11, 13, 0.92);
+    backdrop-filter: blur(18px);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+  
+  .customer-brand {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+  }
+  
+  .customer-brand .brand-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #e1a15d, #b96e31);
+    color: #111;
+    font-size: 18px;
+    font-weight: 800;
+    box-shadow: 0 8px 25px rgba(210, 143, 69, 0.2);
+  }
+  
+  .customer-brand strong {
+    display: block;
+    font-size: 17px;
+    letter-spacing: -0.3px;
+  }
+  
+  .customer-brand span {
+    display: block;
+    margin-top: 2px;
+    color: #77777f;
+    font-size: 9px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  
+  .customer-nav-links {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .customer-nav-links button {
+    border: none;
+    background: transparent;
+    color: #85858d;
+    padding: 9px 15px;
+    border-radius: 9px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: 0.2s ease;
+  }
+  
+  .customer-nav-links button:hover {
+    color: #f1eee8;
+    background: rgba(255, 255, 255, 0.05);
+  }
+  
+  .customer-user-area {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  
+  .customer-user {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+  
+  .user-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #27272b;
+    border: 1px solid rgba(225, 161, 93, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #dda064;
+    font-weight: 700;
+    font-size: 13px;
+  }
+  
+  .customer-user strong {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  
+  .customer-user span {
+    display: block;
+    color: #77777f;
+    font-size: 10px;
+    margin-top: 2px;
+  }
+  
+  .logout-button {
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    background: transparent;
+    color: #9999a1;
+    padding: 8px 13px;
+    border-radius: 8px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: 0.2s ease;
+  }
+  
+  .logout-button:hover {
+    color: #f0eee9;
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  /* HERO */
+  
+  .customer-hero {
+    max-width: 1240px;
+    min-height: 455px;
+    margin: 0 auto;
+    padding: 80px 5% 70px;
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    align-items: center;
+    gap: 60px;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .customer-hero-content {
+    position: relative;
+    z-index: 2;
+  }
+  
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 12px;
+    border: 1px solid rgba(221, 160, 100, 0.2);
+    background: rgba(221, 160, 100, 0.06);
+    color: #d99a5d;
+    border-radius: 30px;
+    font-size: 10px;
+    letter-spacing: 0.6px;
+    margin-bottom: 23px;
+  }
+  
+  .customer-hero h1 {
+    max-width: 650px;
+    margin: 0;
+    font-size: clamp(40px, 5vw, 67px);
+    line-height: 1.02;
+    letter-spacing: -3px;
+    font-weight: 700;
+  }
+  
+  .customer-hero h1 span {
+    display: block;
+    color: #d99a5d;
+  }
+  
+  .customer-hero-content > p {
+    max-width: 540px;
+    margin: 22px 0 30px;
+    color: #85858e;
+    font-size: 15px;
+    line-height: 1.7;
+  }
+  
+  .hero-action {
+    border: none;
+    background: linear-gradient(135deg, #e2a260, #bd7135);
+    color: #111;
+    padding: 13px 19px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 22px;
+    box-shadow: 0 12px 35px rgba(194, 124, 54, 0.18);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .hero-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 40px rgba(194, 124, 54, 0.28);
+  }
+  
+  .hero-action span {
+    font-size: 17px;
+  }
+  
+  /* HERO DECORATION */
+  
+  .hero-decoration {
+    height: 320px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .hero-circle {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(1px);
+  }
+  
+  .hero-circle-one {
+    width: 280px;
+    height: 280px;
+    border: 1px solid rgba(218, 155, 91, 0.15);
+    box-shadow:
+      0 0 80px rgba(218, 155, 91, 0.07),
+      inset 0 0 80px rgba(218, 155, 91, 0.04);
+  }
+  
+  .hero-circle-two {
+    width: 190px;
+    height: 190px;
+    border: 1px solid rgba(218, 155, 91, 0.18);
+  }
+  
+  .hero-booking-card {
+    width: 270px;
+    padding: 24px;
+    border-radius: 17px;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    background: rgba(26, 26, 29, 0.9);
+    box-shadow:
+      0 30px 80px rgba(0, 0, 0, 0.45),
+      0 0 50px rgba(206, 139, 67, 0.06);
+    position: relative;
+    z-index: 2;
+  }
+  
+  .mini-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #777780;
+    font-size: 10px;
+  }
+  
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #d99a5d;
+    box-shadow: 0 0 10px rgba(217, 154, 93, 0.7);
+  }
+  
+  .hero-booking-card h3 {
+    margin: 27px 0;
+    font-size: 23px;
+    letter-spacing: -0.7px;
+  }
+  
+  .mini-card-row {
+    padding-top: 17px;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    display: flex;
+    justify-content: space-between;
+    color: #73737c;
+    font-size: 11px;
+  }
+  
+  .mini-card-row strong {
+    color: #d99a5d;
+  }
+  
+  /* SERVICES */
+  
+  .services-section {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 55px 5% 100px;
+  }
+  
+  .section-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 40px;
+    margin-bottom: 35px;
+  }
+  
+  .section-heading > div > span {
+    color: #d99a5d;
+    font-size: 9px;
+    letter-spacing: 2px;
+    font-weight: 700;
+  }
+  
+  .section-heading h2 {
+    margin: 8px 0 0;
+    font-size: 29px;
+    letter-spacing: -1px;
+  }
+  
+  .section-heading > p {
+    max-width: 370px;
+    margin: 0;
+    color: #707079;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  
+  /* SERVICE GRID */
+  
+  .service-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 17px;
+  }
+  
+  .service-card {
+    padding: 23px;
+    border: 1px solid rgba(255, 255, 255, 0.075);
+    background: linear-gradient(
+      145deg,
+      rgba(29, 29, 32, 0.95),
+      rgba(19, 19, 21, 0.95)
+    );
+    border-radius: 15px;
+    transition: 0.25s ease;
+  }
+  
+  .service-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(217, 154, 93, 0.3);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  }
+  
+  .service-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .service-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(217, 154, 93, 0.09);
+    border: 1px solid rgba(217, 154, 93, 0.14);
+    color: #d99a5d;
+  }
+  
+  .service-status {
+    color: #7e7e86;
+    font-size: 9px;
+    padding: 5px 8px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.04);
+  }
+  
+  .service-card h3 {
+    margin: 23px 0 8px;
+    font-size: 18px;
+    letter-spacing: -0.4px;
+  }
+  
+  .service-card > p {
+    min-height: 52px;
+    margin: 0;
+    color: #777780;
+    font-size: 11px;
+    line-height: 1.6;
+  }
+  
+  .service-info {
+    display: flex;
+    gap: 45px;
+    margin: 22px 0;
+    padding: 15px 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+  
+  .service-info span {
+    display: block;
+    color: #66666e;
+    font-size: 9px;
+    margin-bottom: 5px;
+  }
+  
+  .service-info strong {
+    color: #d8d4ce;
+    font-size: 12px;
+  }
+  
+  .book-service-button {
+    width: 100%;
+    border: 1px solid rgba(217, 154, 93, 0.25);
+    background: rgba(217, 154, 93, 0.07);
+    color: #dda064;
+    padding: 11px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s ease;
+  }
+  
+  .book-service-button:hover {
+    background: #d99a5d;
+    color: #111;
+  }
+  
+  /* LOADING / ERROR STATES */
+  
+  .services-state {
+    min-height: 260px;
+    border: 1px dashed rgba(255, 255, 255, 0.08);
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  
+  .services-state p {
+    color: #707079;
+    font-size: 12px;
+  }
+  
+  .loading-spinner,
+  .button-spinner {
+    border: 2px solid rgba(255, 255, 255, 0.12);
+    border-top-color: #d99a5d;
+    border-radius: 50%;
+    animation: bookeasy-spin 0.8s linear infinite;
+  }
+  
+  .loading-spinner {
+    width: 28px;
+    height: 28px;
+    margin-bottom: 14px;
+  }
+  
+  .services-state h3 {
+    margin: 10px 0 0;
+    font-size: 17px;
+  }
+  
+  .state-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(217, 154, 93, 0.08);
+    color: #d99a5d;
+    font-size: 20px;
+  }
+  
+  .error-state button {
+    margin-top: 10px;
+    border: 1px solid rgba(217, 154, 93, 0.3);
+    background: transparent;
+    color: #d99a5d;
+    padding: 8px 15px;
+    border-radius: 7px;
+    cursor: pointer;
+  }
+  
+  @keyframes bookeasy-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  
+  /* RESPONSIVE */
+  
+  @media (max-width: 900px) {
+    .customer-nav-links {
+      display: none;
+    }
+  
+    .customer-hero {
+      grid-template-columns: 1fr;
+      text-align: center;
+      padding-top: 60px;
+    }
+  
+    .customer-hero-content > p {
+      margin-left: auto;
+      margin-right: auto;
+    }
+  
+    .hero-decoration {
+      height: 260px;
+    }
+  
+    .service-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  
+    .section-heading {
+      align-items: start;
+      flex-direction: column;
+    }
+  }
+  
+  @media (max-width: 600px) {
+    .customer-navbar {
+      padding: 0 20px;
+    }
+  
+    .customer-user > div:last-child,
+    .logout-button {
+      display: none;
+    }
+  
+    .customer-hero {
+      padding: 55px 20px 50px;
+    }
+  
+    .customer-hero h1 {
+      font-size: 42px;
+      letter-spacing: -2px;
+    }
+  
+    .hero-decoration {
+      transform: scale(0.85);
+      margin: -20px 0;
+    }
+  
+    .services-section {
+      padding: 40px 20px 70px;
+    }
+  
+    .service-grid {
+      grid-template-columns: 1fr;
+    }
+  
+    .section-heading h2 {
+      font-size: 25px;
+    }
+  }

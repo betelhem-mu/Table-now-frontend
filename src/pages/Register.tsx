@@ -16,7 +16,7 @@ const Register = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (event: FormEvent) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     setError("");
@@ -129,7 +129,9 @@ const Register = () => {
                 type="button"
                 className="password-toggle"
                 onClick={() => setShowPassword((value) => !value)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-label={
+                  showPassword ? "Hide password" : "Show password"
+                }
               >
                 {showPassword ? "Hide" : "Show"}
               </button>
@@ -196,7 +198,7 @@ const Register = () => {
           Sign in to BookEasy
         </button>
 
-        <p className="auth-footer">
+        <p className="auth-terms">
           By creating an account, you agree to our terms and privacy policy.
         </p>
       </section>
