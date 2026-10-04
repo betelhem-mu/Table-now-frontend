@@ -3,6 +3,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Customer from "./pages/Customer";
 import Booking from "./pages/Booking";
+import MyBookings from "./pages/MyBookings";
 import "./App.css";
 
 function App() {
@@ -26,6 +27,11 @@ function App() {
       <Route
         path="/customer"
         element={<Customer />}
+      />
+
+      <Route
+        path="/customer/bookings"
+        element={<MyBookings />}
       />
 
       <Route

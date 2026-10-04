@@ -1,52 +1,74 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../services/api";
-import type { Service } from "../types";
+import type { Booking, Service } from "../types";
 
 interface ServicesResponse {
   services: Service[];
+}
+
+interface BookingsResponse {
+  bookings: Booking[];
 }
 
 const Customer = () => {
   const navigate = useNavigate();
 
   const [services, setServices] = useState<Service[]>([]);
+  const [activeBookingsCount, setActiveBookingsCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   useEffect(() => {
-    const loadServices = async () => {
+    const loadCustomerData = async () => {
       try {
         setLoading(true);
         setError("");
 
         const token = localStorage.getItem("token");
 
-          if (!token) {
-            navigate("/login");
-            return;
-          }
+        if (!token) {
+          navigate("/login");
+          return;
+        }
 
-        const data = await apiRequest<ServicesResponse>("/services", {
+        // Fetch services
+        const servicesData = await apiRequest<ServicesResponse>("/services", {
           token,
-        });;
+        });
+        setServices(servicesData.services || []);
 
-        setServices(data.services);
+        // Fetch bookings count for stats
+        try {
+          const bookingsData = await apiRequest<BookingsResponse>("/bookings/customer", {
+            token,
+          });
+          const scheduled = (bookingsData.bookings || []).filter(
+            (b) => b.status === "scheduled" && new Date(b.date) >= new Date()
+          );
+          setActiveBookingsCount(scheduled.length);
+        } catch {
+          // Non-critical if bookings fail to load stats
+          setActiveBookingsCount(0);
+        }
       } catch (err) {
         setError(
           err instanceof Error
             ? err.message
-            : "Unable to load services."
+            : "Unable to load dashboard services."
         );
       } finally {
         setLoading(false);
       }
     };
 
-    loadServices();
-  }, []);
+    loadCustomerData();
+  }, [navigate]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -54,12 +76,31 @@ const Customer = () => {
     navigate("/login");
   };
 
+  const scrollToServices = () => {
+    document.getElementById("services")?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const filteredServices = services.filter((service) => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      service.name.toLowerCase().includes(query) ||
+      service.description.toLowerCase().includes(query)
+    );
+  });
+
+  const getProviderName = (service: Service): string => {
+    if (!service.provider) return "Provider";
+    if (typeof service.provider === "string") return service.provider;
+    return service.provider.name || "Provider";
+  };
+
   return (
     <main className="customer-page">
+      {/* Navigation Bar */}
       <nav className="customer-navbar">
         <div className="customer-brand">
           <div className="brand-icon">B</div>
-
           <div>
             <strong>BookEasy</strong>
             <span>Smart booking</span>
@@ -67,24 +108,21 @@ const Customer = () => {
         </div>
 
         <div className="customer-nav-links">
-          <button type="button">Home</button>
-
           <button
             type="button"
-            onClick={() =>
-              document
-                .getElementById("services")
-                ?.scrollIntoView({ behavior: "smooth" })
-            }
+            className="active-nav-link"
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           >
-            Services
+            Dashboard
           </button>
-
+          <button type="button" onClick={scrollToServices}>
+            Browse Services
+          </button>
           <button
             type="button"
             onClick={() => navigate("/customer/bookings")}
           >
-            My Bookings
+            My Bookings {activeBookingsCount > 0 && `(${activeBookingsCount})`}
           </button>
         </div>
 
@@ -93,7 +131,6 @@ const Customer = () => {
             <div className="user-avatar">
               {user.name?.charAt(0)?.toUpperCase() || "U"}
             </div>
-
             <div>
               <strong>{user.name || "Customer"}</strong>
               <span>Customer</span>
@@ -110,11 +147,10 @@ const Customer = () => {
         </div>
       </nav>
 
+      {/* Hero Banner Section */}
       <section className="customer-hero">
         <div className="customer-hero-content">
-          <span className="hero-badge">
-            ✦ Simple. Smart. BookEasy.
-          </span>
+          <span className="hero-badge">✦ CUSTOMER DASHBOARD</span>
 
           <h1>
             Find the right service.
@@ -122,22 +158,25 @@ const Customer = () => {
           </h1>
 
           <p>
-            Discover services from trusted providers and book
-            your appointment in just a few clicks.
+            Welcome back, <strong>{user.name || "Customer"}</strong>! Browse top-rated services from verified providers and manage your appointments seamlessly.
           </p>
 
-          <button
-            type="button"
-            className="hero-action"
-            onClick={() =>
-              document
-                .getElementById("services")
-                ?.scrollIntoView({ behavior: "smooth" })
-            }
-          >
-            Explore services
-            <span>→</span>
-          </button>
+          <div className="hero-cta-group">
+            <button
+              type="button"
+              className="hero-action"
+              onClick={scrollToServices}
+            >
+              Explore services <span>→</span>
+            </button>
+            <button
+              type="button"
+              className="hero-secondary-action"
+              onClick={() => navigate("/customer/bookings")}
+            >
+              View My Appointments
+            </button>
+          </div>
         </div>
 
         <div className="hero-decoration">
@@ -146,33 +185,65 @@ const Customer = () => {
 
           <div className="hero-booking-card">
             <div className="mini-card-top">
-              <span>Available now</span>
+              <span>Customer Overview</span>
               <span className="status-dot"></span>
             </div>
 
-            <h3>Book your time</h3>
+            <h3>Live Dashboard</h3>
 
             <div className="mini-card-row">
               <span>Available services</span>
               <strong>{services.length}</strong>
             </div>
+
+            <div className="mini-card-row">
+              <span>Upcoming Bookings</span>
+              <strong style={{ color: "#38bdf8" }}>{activeBookingsCount}</strong>
+            </div>
           </div>
         </div>
       </section>
 
+      {/* Services Catalog Section */}
       <section id="services" className="services-section">
         <div className="section-heading">
           <div>
-            <span>DISCOVER</span>
-            <h2>Available services</h2>
+            <span>DISCOVER & BOOK</span>
+            <h2>Available Services</h2>
           </div>
 
           <p>
-            Choose a service that fits your needs and schedule
-            your appointment.
+            Browse available services, view details, select a date & time, and confirm your appointment.
           </p>
         </div>
 
+        {/* Live Search and Filters */}
+        <div className="catalog-toolbar">
+          <div className="search-input-wrapper">
+            <span className="search-icon">🔍</span>
+            <input
+              type="text"
+              placeholder="Search services by name or description..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                className="clear-search"
+                onClick={() => setSearchQuery("")}
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          <span className="results-count">
+            Showing {filteredServices.length} of {services.length} services
+          </span>
+        </div>
+
+        {/* Loading State */}
         {loading && (
           <div className="services-state">
             <div className="loading-spinner"></div>
@@ -180,14 +251,12 @@ const Customer = () => {
           </div>
         )}
 
+        {/* Error State */}
         {!loading && error && (
           <div className="services-state error-state">
             <div className="state-icon">!</div>
-
             <h3>We couldn't load the services</h3>
-
             <p>{error}</p>
-
             <button
               type="button"
               onClick={() => window.location.reload()}
@@ -197,61 +266,148 @@ const Customer = () => {
           </div>
         )}
 
-        {!loading && !error && services.length === 0 && (
+        {/* Empty State */}
+        {!loading && !error && filteredServices.length === 0 && (
           <div className="services-state">
-            <div className="state-icon">+</div>
-
-            <h3>No services available yet</h3>
-
+            <div className="state-icon">✦</div>
+            <h3>{searchQuery ? "No matching services found" : "No services available yet"}</h3>
             <p>
-              Providers haven't added any services yet.
+              {searchQuery
+                ? "Try searching with a different keyword."
+                : "Providers haven't added any services yet. Check back soon!"}
             </p>
           </div>
         )}
 
-        {!loading && !error && services.length > 0 && (
+        {/* Service Grid */}
+        {!loading && !error && filteredServices.length > 0 && (
           <div className="service-grid">
-            {services.map((service) => (
+            {filteredServices.map((service) => (
               <article className="service-card" key={service._id}>
-                <div className="service-card-top">
-                  <div className="service-icon">✦</div>
-
-                  <span className="service-status">
-                    Available
-                  </span>
-                </div>
-
-                <h3>{service.name}</h3>
-
-                <p>{service.description}</p>
-
-                <div className="service-info">
-                  <div>
-                    <span>Price</span>
-                    <strong>{service.price}</strong>
-                  </div>
-
-                  <div>
-                    <span>Duration</span>
-                    <strong>{service.duration} min</strong>
+                <div className="service-image">
+                  <img
+                    src={
+                      (service as Service & { image?: string }).image ||
+                      "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=900&q=80"
+                    }
+                    alt={service.name}
+                    loading="lazy"
+                  />
+                  <div className="service-image-overlay">
+                    <span className="service-status">Available</span>
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  className="book-service-button"
-                  onClick={() =>
-                    navigate(`/services/${service._id}/book`)
-                  }
-                >
-                  Book now
-                  <span>→</span>
-                </button>
+                <div className="service-card-content">
+                  <div className="service-card-top">
+                    <div className="service-icon">✦</div>
+                    <span className="provider-tag">By {getProviderName(service)}</span>
+                  </div>
+
+                  <h3>{service.name}</h3>
+
+                  <p className="service-description-preview">
+                    {service.description || "Professional service available for booking."}
+                  </p>
+
+                  <div className="service-info">
+                    <div>
+                      <span>Price</span>
+                      <strong>${service.price}</strong>
+                    </div>
+
+                    <div>
+                      <span>Duration</span>
+                      <strong>{service.duration} min</strong>
+                    </div>
+                  </div>
+
+                  <div className="service-actions-row">
+                    <button
+                      type="button"
+                      className="view-details-button"
+                      onClick={() => setSelectedService(service)}
+                    >
+                      View Details
+                    </button>
+
+                    <button
+                      type="button"
+                      className="book-service-button"
+                      onClick={() => navigate(`/services/${service._id}/book`)}
+                    >
+                      <span>Book Now</span>
+                      <span>→</span>
+                    </button>
+                  </div>
+                </div>
               </article>
             ))}
           </div>
         )}
       </section>
+
+      {/* Service Details Modal */}
+      {selectedService && (
+        <div className="modal-overlay" onClick={() => setSelectedService(null)}>
+          <div className="modal-card service-details-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <span className="hero-badge">✦ SERVICE DETAILS</span>
+              <button
+                type="button"
+                className="close-modal-btn"
+                onClick={() => setSelectedService(null)}
+              >
+                ✕
+              </button>
+            </div>
+
+            <h2>{selectedService.name}</h2>
+            <p className="service-modal-provider">
+              Provided by <strong>{getProviderName(selectedService)}</strong>
+            </p>
+
+            <div className="service-modal-body">
+              <p className="service-modal-desc">{selectedService.description}</p>
+
+              <div className="service-modal-stats">
+                <div className="modal-stat">
+                  <span>Price</span>
+                  <strong>${selectedService.price}</strong>
+                </div>
+                <div className="modal-stat">
+                  <span>Duration</span>
+                  <strong>{selectedService.duration} Minutes</strong>
+                </div>
+                <div className="modal-stat">
+                  <span>Availability</span>
+                  <strong style={{ color: "#10b981" }}>Active & Available</strong>
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="secondary-btn"
+                onClick={() => setSelectedService(null)}
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                className="primary-action-btn"
+                onClick={() => {
+                  setSelectedService(null);
+                  navigate(`/services/${selectedService._id}/book`);
+                }}
+              >
+                Choose Date & Time to Book →
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 };
