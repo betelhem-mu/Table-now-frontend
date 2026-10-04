@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../services/api";
+import { useToast } from "../context/ToastContext";
 import type { Booking, Service, ServiceProvider, User } from "../types";
 
 interface CustomerBookingsResponse {
@@ -9,6 +10,7 @@ interface CustomerBookingsResponse {
 
 const MyBookings = () => {
   const navigate = useNavigate();
+  const { addToast } = useToast();
 
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -18,7 +20,6 @@ const MyBookings = () => {
 
   const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
-  const [cancelMessage, setCancelMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
 
@@ -40,9 +41,9 @@ const MyBookings = () => {
 
       setBookings(data.bookings || []);
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Unable to load your bookings."
-      );
+      const msg = err instanceof Error ? err.message : "Unable to load your bookings.";
+      setError(msg);
+      addToast(msg, "error");
     } finally {
       setLoading(false);
     }
@@ -55,7 +56,6 @@ const MyBookings = () => {
   const handleCancelBooking = async (bookingId: string) => {
     try {
       setCancellingId(bookingId);
-      setCancelMessage(null);
 
       const token = localStorage.getItem("token");
       if (!token) {
@@ -68,18 +68,12 @@ const MyBookings = () => {
         token,
       });
 
-      setCancelMessage({
-        type: "success",
-        text: "Appointment cancelled successfully.",
-      });
-
+      addToast("Appointment cancelled successfully.", "success");
       setConfirmCancelId(null);
       await loadBookings();
     } catch (err) {
-      setCancelMessage({
-        type: "error",
-        text: err instanceof Error ? err.message : "Failed to cancel booking.",
-      });
+      const msg = err instanceof Error ? err.message : "Failed to cancel booking.";
+      addToast(msg, "error");
     } finally {
       setCancellingId(null);
     }
@@ -88,6 +82,7 @@ const MyBookings = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    addToast("Logged out successfully.", "info");
     navigate("/login");
   };
 
@@ -241,15 +236,6 @@ const MyBookings = () => {
             </div>
           </div>
         </div>
-
-        {/* Global Feedback Banner */}
-        {cancelMessage && (
-          <div className={`notification-banner ${cancelMessage.type}`}>
-            <span>{cancelMessage.type === "success" ? "✓" : "!"}</span>
-            <p>{cancelMessage.text}</p>
-            <button type="button" onClick={() => setCancelMessage(null)}>✕</button>
-          </div>
-        )}
 
         {/* Tab Selection & Search Control */}
         <div className="bookings-control-bar">

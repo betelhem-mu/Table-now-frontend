@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { apiRequest } from "../services/api";
+import { useToast } from "../context/ToastContext";
 import type { Service } from "../types";
 
 interface ServiceResponse {
@@ -28,9 +29,19 @@ const PRESET_TIME_SLOTS = [
   "17:00",
 ];
 
+const DEFAULT_IMAGES: Record<string, string> = {
+  "Beauty & Wellness": "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=900&q=80",
+  "Education & Coaching": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=900&q=80",
+  "Tech & Business": "https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=900&q=80",
+  "Health & Fitness": "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?auto=format&fit=crop&w=900&q=80",
+  Automotive: "https://images.unsplash.com/photo-1607860108855-64acf2078ed9?auto=format&fit=crop&w=900&q=80",
+  General: "https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=900&q=80",
+};
+
 const Booking = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { addToast } = useToast();
 
   const [service, setService] = useState<Service | null>(null);
   const [date, setDate] = useState("");
@@ -67,37 +78,41 @@ const Booking = () => {
 
         setService(data.service);
       } catch (err) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Unable to load this service."
-        );
+        const msg = err instanceof Error ? err.message : "Unable to load this service.";
+        setError(msg);
+        addToast(msg, "error");
       } finally {
         setLoading(false);
       }
     };
 
     loadService();
-  }, [id, navigate]);
+  }, [id, navigate, addToast]);
 
   const handleBooking = async () => {
     setError("");
     setSuccess("");
 
     if (!date || !time) {
-      setError("Please select both a date and a time slot for your appointment.");
+      const msg = "Please select both a date and a time slot for your appointment.";
+      setError(msg);
+      addToast(msg, "warning");
       return;
     }
 
     const selectedDate = new Date(`${date}T${time}`);
 
     if (Number.isNaN(selectedDate.getTime())) {
-      setError("Please select a valid date and time.");
+      const msg = "Please select a valid date and time.";
+      setError(msg);
+      addToast(msg, "warning");
       return;
     }
 
     if (selectedDate <= new Date()) {
-      setError("Appointment date and time must be in the future.");
+      const msg = "Appointment date and time must be in the future.";
+      setError(msg);
+      addToast(msg, "warning");
       return;
     }
 
@@ -125,17 +140,17 @@ const Booking = () => {
         token,
       });
 
-      setSuccess(data.message || "Appointment booked successfully!");
+      const succMsg = data.message || "Appointment booked successfully!";
+      setSuccess(succMsg);
+      addToast(succMsg, "success");
 
       setTimeout(() => {
         navigate("/customer/bookings");
       }, 1200);
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Unable to create booking."
-      );
+      const msg = err instanceof Error ? err.message : "Unable to create booking.";
+      setError(msg);
+      addToast(msg, "error");
     } finally {
       setBooking(false);
     }
@@ -176,6 +191,14 @@ const Booking = () => {
       ? service.provider
       : service.provider?.name || "Provider";
 
+  const getServiceImage = (): string => {
+    if (service.image && service.image.trim().startsWith("http")) {
+      return service.image.trim();
+    }
+    const cat = service.category || "General";
+    return DEFAULT_IMAGES[cat] || DEFAULT_IMAGES.General;
+  };
+
   return (
     <main className="booking-page">
       <div className="booking-background-glow booking-glow-one"></div>
@@ -204,8 +227,15 @@ const Booking = () => {
       <section className="booking-content">
         {/* Left Column: Service Information Card */}
         <div className="booking-service-card">
-          <div className="booking-service-image">
-            <div className="booking-service-placeholder">✦</div>
+          <div className="booking-service-image" style={{ height: "220px", position: "relative", overflow: "hidden", borderRadius: "16px 16px 0 0" }}>
+            <img
+              src={getServiceImage()}
+              alt={service.name}
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+            <div style={{ position: "absolute", top: "12px", left: "12px" }}>
+              <span className="service-category-badge">{service.category || "General"}</span>
+            </div>
           </div>
 
           <div className="booking-service-details">
@@ -216,7 +246,7 @@ const Booking = () => {
             <div className="booking-service-info">
               <div>
                 <span>Price</span>
-                <strong style={{ color: "#38bdf8" }}>${service.price}</strong>
+                <strong style={{ color: "#e2a15d" }}>${service.price}</strong>
               </div>
 
               <div>

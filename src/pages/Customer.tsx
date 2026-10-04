@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../services/api";
+import { useToast } from "../context/ToastContext";
+import { getServiceImage } from "../utils/serviceUtils";
 import type { Booking, Service } from "../types";
 
 interface ServicesResponse {
@@ -11,8 +13,18 @@ interface BookingsResponse {
   bookings: Booking[];
 }
 
+const CATEGORIES = [
+  "All",
+  "Beauty & Wellness",
+  "Education & Coaching",
+  "Tech & Business",
+  "Health & Fitness",
+  "Automotive",
+];
+
 const Customer = () => {
   const navigate = useNavigate();
+  const { addToast } = useToast();
 
   const [services, setServices] = useState<Service[]>([]);
   const [activeBookingsCount, setActiveBookingsCount] = useState(0);
@@ -20,6 +32,7 @@ const Customer = () => {
   const [error, setError] = useState("");
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedService, setSelectedService] = useState<Service | null>(null);
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -53,26 +66,24 @@ const Customer = () => {
           );
           setActiveBookingsCount(scheduled.length);
         } catch {
-          // Non-critical if bookings fail to load stats
           setActiveBookingsCount(0);
         }
       } catch (err) {
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Unable to load dashboard services."
-        );
+        const msg = err instanceof Error ? err.message : "Unable to load dashboard services.";
+        setError(msg);
+        addToast(msg, "error");
       } finally {
         setLoading(false);
       }
     };
 
     loadCustomerData();
-  }, [navigate]);
+  }, [navigate, addToast]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    addToast("Logged out successfully.", "info");
     navigate("/login");
   };
 
@@ -81,12 +92,16 @@ const Customer = () => {
   };
 
   const filteredServices = services.filter((service) => {
-    if (!searchQuery.trim()) return true;
-    const query = searchQuery.toLowerCase();
-    return (
-      service.name.toLowerCase().includes(query) ||
-      service.description.toLowerCase().includes(query)
-    );
+    const matchesSearch =
+      !searchQuery.trim() ||
+      service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      service.description.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesCategory =
+      selectedCategory === "All" ||
+      (service.category && service.category.toLowerCase() === selectedCategory.toLowerCase());
+
+    return matchesSearch && matchesCategory;
   });
 
   const getProviderName = (service: Service): string => {
@@ -99,7 +114,7 @@ const Customer = () => {
     <main className="customer-page">
       {/* Navigation Bar */}
       <nav className="customer-navbar">
-        <div className="customer-brand">
+        <div className="customer-brand" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })} style={{ cursor: "pointer" }}>
           <div className="brand-icon">B</div>
           <div>
             <strong>BookEasy</strong>
@@ -217,7 +232,7 @@ const Customer = () => {
           </p>
         </div>
 
-        {/* Live Search and Filters */}
+        {/* Live Search and Category Filters Toolbar */}
         <div className="catalog-toolbar">
           <div className="search-input-wrapper">
             <span className="search-icon">🔍</span>
@@ -241,6 +256,20 @@ const Customer = () => {
           <span className="results-count">
             Showing {filteredServices.length} of {services.length} services
           </span>
+        </div>
+
+        {/* Category Pills */}
+        <div className="category-pills-row">
+          {CATEGORIES.map((category) => (
+            <button
+              key={category}
+              type="button"
+              className={`category-pill ${selectedCategory === category ? "active" : ""}`}
+              onClick={() => setSelectedCategory(category)}
+            >
+              {category}
+            </button>
+          ))}
         </div>
 
         {/* Loading State */}
@@ -270,10 +299,14 @@ const Customer = () => {
         {!loading && !error && filteredServices.length === 0 && (
           <div className="services-state">
             <div className="state-icon">✦</div>
-            <h3>{searchQuery ? "No matching services found" : "No services available yet"}</h3>
+            <h3>
+              {searchQuery || selectedCategory !== "All"
+                ? "No matching services found"
+                : "No services available yet"}
+            </h3>
             <p>
-              {searchQuery
-                ? "Try searching with a different keyword."
+              {searchQuery || selectedCategory !== "All"
+                ? "Try adjusting your search keyword or selected category filter."
                 : "Providers haven't added any services yet. Check back soon!"}
             </p>
           </div>
@@ -286,14 +319,12 @@ const Customer = () => {
               <article className="service-card" key={service._id}>
                 <div className="service-image">
                   <img
-                    src={
-                      (service as Service & { image?: string }).image ||
-                      "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=900&q=80"
-                    }
+                    src={getServiceImage(service)}
                     alt={service.name}
                     loading="lazy"
                   />
                   <div className="service-image-overlay">
+                    <span className="service-category-badge">{service.category || "General"}</span>
                     <span className="service-status">Available</span>
                   </div>
                 </div>
@@ -313,7 +344,7 @@ const Customer = () => {
                   <div className="service-info">
                     <div>
                       <span>Price</span>
-                      <strong>${service.price}</strong>
+                      <strong style={{ color: "#e2a15d" }}>${service.price}</strong>
                     </div>
 
                     <div>
@@ -362,6 +393,17 @@ const Customer = () => {
               </button>
             </div>
 
+            <div style={{ borderRadius: "14px", overflow: "hidden", height: "180px", marginBottom: "16px", position: "relative" }}>
+              <img
+                src={getServiceImage(selectedService)}
+                alt={selectedService.name}
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
+              <div style={{ position: "absolute", bottom: "10px", left: "10px" }}>
+                <span className="service-category-badge">{selectedService.category || "General"}</span>
+              </div>
+            </div>
+
             <h2>{selectedService.name}</h2>
             <p className="service-modal-provider">
               Provided by <strong>{getProviderName(selectedService)}</strong>
@@ -373,14 +415,14 @@ const Customer = () => {
               <div className="service-modal-stats">
                 <div className="modal-stat">
                   <span>Price</span>
-                  <strong>${selectedService.price}</strong>
+                  <strong style={{ color: "#e2a15d" }}>${selectedService.price}</strong>
                 </div>
                 <div className="modal-stat">
                   <span>Duration</span>
                   <strong>{selectedService.duration} Minutes</strong>
                 </div>
                 <div className="modal-stat">
-                  <span>Availability</span>
+                  <span>Status</span>
                   <strong style={{ color: "#10b981" }}>Active & Available</strong>
                 </div>
               </div>
@@ -402,7 +444,7 @@ const Customer = () => {
                   navigate(`/services/${selectedService._id}/book`);
                 }}
               >
-                Choose Date & Time to Book →
+                Schedule Appointment →
               </button>
             </div>
           </div>

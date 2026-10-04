@@ -25,6 +25,8 @@ export interface Service {
   description: string;
   price: number;
   duration: number;
+  category?: string;
+  image?: string;
   provider: string | ServiceProvider;
   createdAt?: string;
   updatedAt?: string;
