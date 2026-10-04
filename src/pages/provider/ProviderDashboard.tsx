@@ -71,7 +71,7 @@ const ProviderDashboard = () => {
         const providerId = typeof s.provider === "string" ? s.provider : s.provider._id;
         return providerId === currentUser.id || !providerId;
       });
-      setServices(providerServices.length > 0 ? providerServices : servicesData.services || []);
+      setServices(providerServices);
 
       // 2. Fetch provider's bookings
       try {
