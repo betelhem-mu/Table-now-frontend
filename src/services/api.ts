@@ -23,15 +23,31 @@ export const apiRequest = async <T>(
     },
   });
 
-  const data = await response.json();
+  const contentType = response.headers.get("content-type");
+  let data: any = null;
+
+  if (contentType && contentType.includes("application/json")) {
+    try {
+      data = await response.json();
+    } catch {
+      data = null;
+    }
+  } else {
+    const rawText = await response.text();
+    if (!response.ok) {
+      throw new Error(`Server error (${response.status}): ${rawText.replace(/<[^>]*>?/gm, "").substring(0, 120).trim() || response.statusText}`);
+    }
+    data = { message: rawText };
+  }
 
   if (!response.ok) {
+    const errorMessage = data?.message || `Request failed with status ${response.status}`;
     if (response.status === 401) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      window.dispatchEvent(new CustomEvent("auth:expired", { detail: data.message || "Session expired" }));
+      window.dispatchEvent(new CustomEvent("auth:expired", { detail: errorMessage }));
     }
-    throw new Error(data.message || "Something went wrong");
+    throw new Error(errorMessage);
   }
 
   return data;

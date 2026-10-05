@@ -100,23 +100,53 @@ const ProviderDashboard = () => {
     navigate("/login");
   };
 
-  // Handle file upload -> convert to Base64
+  // Handle file upload -> convert & compress to Base64
   const handleImageFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        setFormError("Selected image file is too large (max 5MB).");
-        return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === "string") {
-          setImage(reader.result);
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      setFormError("Selected image file is too large (max 10MB).");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let width = img.width;
+        let height = img.height;
+        const maxDim = 1200;
+
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedBase64 = canvas.toDataURL("image/jpeg", 0.8);
+          setImage(compressedBase64);
+          setFormError("");
+        } else if (typeof event.target?.result === "string") {
+          setImage(event.target.result);
           setFormError("");
         }
       };
-      reader.readAsDataURL(file);
-    }
+      if (typeof event.target?.result === "string") {
+        img.src = event.target.result;
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   // Open modal for Create or Edit
