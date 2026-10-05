@@ -38,6 +38,7 @@ export interface Booking {
   service: string | Service;
   provider: string | User | ServiceProvider;
   date: string;
+  time?: string;
   status: "scheduled" | "completed" | "cancelled";
   createdAt?: string;
   updatedAt?: string;

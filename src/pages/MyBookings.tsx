@@ -333,6 +333,8 @@ const MyBookings = () => {
               const providerName = getProviderName(booking.provider);
               const canCancel = isUpcoming(booking);
 
+              const displayTime = booking.time || formattedTime;
+
               return (
                 <div key={booking._id} className={`booking-card status-${booking.status}`}>
                   <div className="booking-card-header">
@@ -357,7 +359,7 @@ const MyBookings = () => {
                     <div className="detail-item">
                       <span className="detail-label">Date & Time</span>
                       <strong className="detail-value highlighted">
-                        🗓️ {formattedDate} at ⏰ {formattedTime}
+                        🗓️ {formattedDate} at ⏰ {displayTime}
                       </strong>
                     </div>
 

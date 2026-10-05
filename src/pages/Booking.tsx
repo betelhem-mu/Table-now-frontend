@@ -136,6 +136,7 @@ const Booking = () => {
         body: JSON.stringify({
           serviceId: id,
           date: selectedDate.toISOString(),
+          time,
         }),
         token,
       });

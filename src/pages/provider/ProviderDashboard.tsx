@@ -564,6 +564,8 @@ const ProviderDashboard = () => {
                   const serviceName = getServiceName(booking);
                   const isScheduled = booking.status === "scheduled";
 
+                  const displayTime = booking.time || formattedTime;
+
                   return (
                     <div key={booking._id} className={`booking-card status-${booking.status}`}>
                       <div className="booking-card-header">
@@ -586,7 +588,7 @@ const ProviderDashboard = () => {
                         <div className="detail-item">
                           <span className="detail-label">Date & Time</span>
                           <strong className="detail-value highlighted">
-                            🗓️ {formattedDate} at ⏰ {formattedTime}
+                            🗓️ {formattedDate} at ⏰ {displayTime}
                           </strong>
                         </div>
 
