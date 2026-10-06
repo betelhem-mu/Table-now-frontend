@@ -45,6 +45,7 @@ const ProviderDashboard = () => {
   const [duration, setDuration] = useState("");
   const [category, setCategory] = useState("Beauty & Wellness");
   const [image, setImage] = useState("");
+  const [isFree, setIsFree] = useState(false);
   const [formError, setFormError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -155,6 +156,7 @@ const ProviderDashboard = () => {
     setName("");
     setDescription("");
     setPrice("");
+    setIsFree(false);
     setDuration("30");
     setCategory("Beauty & Wellness");
     setImage("");
@@ -166,7 +168,9 @@ const ProviderDashboard = () => {
     setEditingService(service);
     setName(service.name);
     setDescription(service.description);
-    setPrice(service.price.toString());
+    const free = service.price === 0;
+    setIsFree(free);
+    setPrice(free ? "" : service.price.toString());
     setDuration(service.duration.toString());
     setCategory(service.category || "Beauty & Wellness");
     setImage(service.image || "");
@@ -195,8 +199,8 @@ const ProviderDashboard = () => {
       return;
     }
 
-    const numPrice = Number(price);
-    if (price === "" || Number.isNaN(numPrice) || numPrice < 0) {
+    const numPrice = isFree ? 0 : Number(price);
+    if (!isFree && (price === "" || Number.isNaN(numPrice) || numPrice < 0)) {
       setFormError("Please enter a valid price (minimum $0).");
       return;
     }
@@ -514,7 +518,9 @@ const ProviderDashboard = () => {
                       <div className="service-info">
                         <div>
                           <span>Price</span>
-                          <strong style={{ color: "#e2a15d" }}>${service.price}</strong>
+                          <strong style={{ color: service.price === 0 ? "#4ade80" : "#e2a15d" }}>
+                            {service.price === 0 ? "Free" : `$${service.price}`}
+                          </strong>
                         </div>
                         <div>
                           <span>Duration</span>
@@ -773,6 +779,49 @@ const ProviderDashboard = () => {
                 />
               </div>
 
+              {/* Free / Paid toggle */}
+              <div className="form-group">
+                <label>Pricing Type *</label>
+                <div style={{ display: "flex", gap: "10px", marginTop: "6px" }}>
+                  <button
+                    type="button"
+                    onClick={() => { setIsFree(false); }}
+                    style={{
+                      flex: 1,
+                      padding: "10px 0",
+                      borderRadius: "10px",
+                      border: !isFree ? "2px solid #e2a15d" : "1px solid rgba(255,255,255,0.12)",
+                      background: !isFree ? "rgba(226,161,93,0.15)" : "#141419",
+                      color: !isFree ? "#e2a15d" : "rgba(255,255,255,0.55)",
+                      fontWeight: 700,
+                      fontSize: "13px",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    💰 Paid Service
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setIsFree(true); setPrice(""); }}
+                    style={{
+                      flex: 1,
+                      padding: "10px 0",
+                      borderRadius: "10px",
+                      border: isFree ? "2px solid #4ade80" : "1px solid rgba(255,255,255,0.12)",
+                      background: isFree ? "rgba(74,222,128,0.12)" : "#141419",
+                      color: isFree ? "#4ade80" : "rgba(255,255,255,0.55)",
+                      fontWeight: 700,
+                      fontSize: "13px",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    🎁 Free Service
+                  </button>
+                </div>
+              </div>
+
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
                 <div className="form-group">
                   <label htmlFor="service-price">Price ($) *</label>
@@ -781,9 +830,11 @@ const ProviderDashboard = () => {
                     type="number"
                     min="0"
                     step="1"
-                    placeholder="e.g. 45"
-                    value={price}
+                    placeholder={isFree ? "Free" : "e.g. 45"}
+                    value={isFree ? "" : price}
+                    disabled={isFree}
                     onChange={(e) => setPrice(e.target.value)}
+                    style={isFree ? { opacity: 0.4, cursor: "not-allowed" } : {}}
                   />
                 </div>
 
@@ -793,7 +844,7 @@ const ProviderDashboard = () => {
                     id="service-duration"
                     type="number"
                     min="1"
-                    step="5"
+                    step="1"
                     placeholder="e.g. 30"
                     value={duration}
                     onChange={(e) => setDuration(e.target.value)}
