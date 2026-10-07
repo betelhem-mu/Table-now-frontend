@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import type { FormEvent, ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../../services/api";
@@ -42,7 +42,8 @@ const ProviderDashboard = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
-  const [duration, setDuration] = useState("");
+  const [durationHours, setDurationHours] = useState("0");
+  const [durationMins, setDurationMins] = useState("30");
   const [category, setCategory] = useState("Beauty & Wellness");
   const [image, setImage] = useState("");
   const [isFree, setIsFree] = useState(false);
@@ -52,7 +53,61 @@ const ProviderDashboard = () => {
   // Action loading state for completing booking or deleting service
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
+  // Settings panel
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [settingName, setSettingName] = useState("");
+  const [settingProfileImage, setSettingProfileImage] = useState("");
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const settingsRef = useRef<HTMLDivElement>(null);
+
   const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+
+  // Load theme + settings from localStorage
+  useEffect(() => {
+    const savedTheme = (localStorage.getItem("provider_theme") || "dark") as "dark" | "light";
+    const savedProfile = localStorage.getItem("provider_profile_image") || "";
+    const savedName = localStorage.getItem("provider_display_name") || currentUser.name || "";
+    setTheme(savedTheme);
+    setSettingProfileImage(savedProfile);
+    setSettingName(savedName);
+    document.documentElement.setAttribute("data-theme", savedTheme);
+  }, []);
+
+  // Close settings when clicking outside
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (settingsRef.current && !settingsRef.current.contains(e.target as Node)) {
+        setIsSettingsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const applyTheme = (t: "dark" | "light") => {
+    setTheme(t);
+    localStorage.setItem("provider_theme", t);
+    document.documentElement.setAttribute("data-theme", t);
+  };
+
+  const handleSettingNameSave = () => {
+    localStorage.setItem("provider_display_name", settingName.trim());
+    setIsSettingsOpen(false);
+  };
+
+  const handleSettingProfileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const result = ev.target?.result as string;
+      setSettingProfileImage(result);
+      localStorage.setItem("provider_profile_image", result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const displayName = localStorage.getItem("provider_display_name") || currentUser.name || "Service Provider";
 
   const loadData = async () => {
     try {
@@ -157,7 +212,8 @@ const ProviderDashboard = () => {
     setDescription("");
     setPrice("");
     setIsFree(false);
-    setDuration("30");
+    setDurationHours("0");
+    setDurationMins("30");
     setCategory("Beauty & Wellness");
     setImage("");
     setFormError("");
@@ -171,7 +227,9 @@ const ProviderDashboard = () => {
     const free = service.price === 0;
     setIsFree(free);
     setPrice(free ? "" : service.price.toString());
-    setDuration(service.duration.toString());
+    const totalMins = service.duration || 0;
+    setDurationHours(String(Math.floor(totalMins / 60)));
+    setDurationMins(String(totalMins % 60));
     setCategory(service.category || "Beauty & Wellness");
     setImage(service.image || "");
     setFormError("");
@@ -205,8 +263,8 @@ const ProviderDashboard = () => {
       return;
     }
 
-    const numDuration = Number(duration);
-    if (duration === "" || Number.isNaN(numDuration) || numDuration < 1) {
+    const numDuration = (Number(durationHours) || 0) * 60 + (Number(durationMins) || 0);
+    if (numDuration < 1) {
       setFormError("Please enter a valid duration (at least 1 minute).");
       return;
     }
@@ -352,30 +410,111 @@ const ProviderDashboard = () => {
           </div>
         </div>
 
-        <div className="customer-nav-links">
-          <button
-            type="button"
-            className={activeTab === "services" ? "active-nav-link" : ""}
-            onClick={() => setActiveTab("services")}
-          >
-            My Services ({services.length})
-          </button>
-          <button
-            type="button"
-            className={activeTab === "appointments" ? "active-nav-link" : ""}
-            onClick={() => setActiveTab("appointments")}
-          >
-            Customer Appointments ({bookings.length})
-          </button>
-        </div>
 
         <div className="customer-user-area">
+          {/* Settings gear */}
+          <div className="settings-wrapper" ref={settingsRef}>
+            <button
+              type="button"
+              className="settings-gear-btn"
+              onClick={() => setIsSettingsOpen((o) => !o)}
+              title="Settings"
+            >
+              ⚙️
+            </button>
+
+            {isSettingsOpen && (
+              <div className="settings-dropdown">
+                <div className="settings-section-title">Settings</div>
+
+                {/* Profile Photo */}
+                <div className="settings-section">
+                  <label className="settings-label">Profile Photo</label>
+                  <div className="settings-avatar-row">
+                    <div className="settings-avatar-preview">
+                      {settingProfileImage
+                        ? <img src={settingProfileImage} alt="Profile" />
+                        : <span>{displayName.charAt(0).toUpperCase()}</span>
+                      }
+                    </div>
+                    <label className="settings-upload-btn">
+                      📁 Upload Photo
+                      <input
+                        type="file"
+                        accept="image/*"
+                        style={{ display: "none" }}
+                        onChange={handleSettingProfileUpload}
+                      />
+                    </label>
+                    {settingProfileImage && (
+                      <button
+                        type="button"
+                        className="settings-remove-btn"
+                        onClick={() => { setSettingProfileImage(""); localStorage.removeItem("provider_profile_image"); }}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Edit Name */}
+                <div className="settings-section">
+                  <label className="settings-label">Display Name</label>
+                  <div className="settings-name-row">
+                    <input
+                      type="text"
+                      className="settings-name-input"
+                      value={settingName}
+                      onChange={(e) => setSettingName(e.target.value)}
+                      placeholder="Your name"
+                    />
+                    <button
+                      type="button"
+                      className="settings-save-btn"
+                      onClick={handleSettingNameSave}
+                    >
+                      Save
+                    </button>
+                  </div>
+                </div>
+
+                {/* Dark / Light Mode */}
+                <div className="settings-section">
+                  <label className="settings-label">Theme</label>
+                  <div className="settings-theme-row">
+                    <button
+                      type="button"
+                      className={`settings-theme-btn ${theme === "dark" ? "active" : ""}`}
+                      onClick={() => applyTheme("dark")}
+                    >
+                      🌙 Dark
+                    </button>
+                    <button
+                      type="button"
+                      className={`settings-theme-btn ${theme === "light" ? "active" : ""}`}
+                      onClick={() => applyTheme("light")}
+                    >
+                      ☀️ Light
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="customer-user">
-            <div className="user-avatar" style={{ background: "linear-gradient(135deg, #38bdf8, #1d4ed8)" }}>
-              {currentUser.name?.charAt(0)?.toUpperCase() || "P"}
+            <div
+              className="user-avatar"
+              style={settingProfileImage ? { padding: 0, overflow: "hidden" } : { background: "linear-gradient(135deg, #38bdf8, #1d4ed8)" }}
+            >
+              {settingProfileImage
+                ? <img src={settingProfileImage} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                : displayName.charAt(0).toUpperCase() || "P"
+              }
             </div>
             <div>
-              <strong>{currentUser.name || "Service Provider"}</strong>
+              <strong>{displayName}</strong>
               <span>Provider Account</span>
             </div>
           </div>
@@ -524,7 +663,11 @@ const ProviderDashboard = () => {
                         </div>
                         <div>
                           <span>Duration</span>
-                          <strong>{service.duration} min</strong>
+                          <strong>
+                            {service.duration >= 60
+                              ? `${Math.floor(service.duration / 60)}h${service.duration % 60 > 0 ? ` ${service.duration % 60}m` : ""}`
+                              : `${service.duration}m`}
+                          </strong>
                         </div>
                       </div>
 
@@ -839,16 +982,35 @@ const ProviderDashboard = () => {
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="service-duration">Duration (Minutes) *</label>
-                  <input
-                    id="service-duration"
-                    type="number"
-                    min="1"
-                    step="1"
-                    placeholder="e.g. 30"
-                    value={duration}
-                    onChange={(e) => setDuration(e.target.value)}
-                  />
+                  <label>Duration *</label>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                    <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
+                      <input
+                        id="service-duration-hours"
+                        type="number"
+                        min="0"
+                        step="1"
+                        placeholder="0"
+                        value={durationHours}
+                        onChange={(e) => setDurationHours(e.target.value)}
+                      />
+                      <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", textAlign: "center" }}>Hours</span>
+                    </div>
+                    <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "18px", paddingBottom: "18px" }}>:</span>
+                    <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "4px" }}>
+                      <input
+                        id="service-duration-mins"
+                        type="number"
+                        min="0"
+                        max="59"
+                        step="1"
+                        placeholder="0"
+                        value={durationMins}
+                        onChange={(e) => setDurationMins(e.target.value)}
+                      />
+                      <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", textAlign: "center" }}>Minutes</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 

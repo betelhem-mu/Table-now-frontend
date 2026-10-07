@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../services/api";
 import { useToast } from "../context/ToastContext";
 import { getServiceImage } from "../utils/serviceUtils";
+import { SettingsDropdown } from "../components/SettingsDropdown";
 import type { Booking, Service } from "../types";
 
 interface ServicesResponse {
@@ -30,12 +31,15 @@ const Customer = () => {
   const [activeBookingsCount, setActiveBookingsCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [, setSettingVersion] = useState(0);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedService, setSelectedService] = useState<Service | null>(null);
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const customerDisplayName = localStorage.getItem("customer_display_name") || user.name || "Customer";
+  const customerProfileImage = localStorage.getItem("customer_profile_image") || "";
 
   useEffect(() => {
     const loadCustomerData = async () => {
@@ -142,13 +146,26 @@ const Customer = () => {
         </div>
 
         <div className="customer-user-area">
+          <SettingsDropdown
+            role="customer"
+            defaultName={user.name || "Customer"}
+            onUpdate={() => setSettingVersion((v) => v + 1)}
+          />
+
           <div className="customer-user">
-            <div className="user-avatar">
-              {user.name?.charAt(0)?.toUpperCase() || "U"}
+            <div
+              className="user-avatar"
+              style={customerProfileImage ? { padding: 0, overflow: "hidden" } : {}}
+            >
+              {customerProfileImage ? (
+                <img src={customerProfileImage} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              ) : (
+                customerDisplayName.charAt(0).toUpperCase() || "C"
+              )}
             </div>
             <div>
-              <strong>{user.name || "Customer"}</strong>
-              <span>Customer</span>
+              <strong>{customerDisplayName}</strong>
+              <span>Customer Account</span>
             </div>
           </div>
 

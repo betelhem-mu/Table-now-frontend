@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../services/api";
 import { useToast } from "../context/ToastContext";
+import { SettingsDropdown } from "../components/SettingsDropdown";
 import type { Booking, Service, ServiceProvider, User } from "../types";
 
 interface CustomerBookingsResponse {
@@ -17,11 +18,14 @@ const MyBookings = () => {
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState<"upcoming" | "history">("upcoming");
   const [searchQuery, setSearchQuery] = useState("");
+  const [, setSettingVersion] = useState(0);
 
   const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const customerDisplayName = localStorage.getItem("customer_display_name") || currentUser.name || "Customer";
+  const customerProfileImage = localStorage.getItem("customer_profile_image") || "";
 
   const loadBookings = async () => {
     try {
@@ -176,13 +180,26 @@ const MyBookings = () => {
         </div>
 
         <div className="customer-user-area">
+          <SettingsDropdown
+            role="customer"
+            defaultName={currentUser.name || "Customer"}
+            onUpdate={() => setSettingVersion((v) => v + 1)}
+          />
+
           <div className="customer-user">
-            <div className="user-avatar">
-              {currentUser.name?.charAt(0)?.toUpperCase() || "U"}
+            <div
+              className="user-avatar"
+              style={customerProfileImage ? { padding: 0, overflow: "hidden" } : {}}
+            >
+              {customerProfileImage ? (
+                <img src={customerProfileImage} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              ) : (
+                customerDisplayName.charAt(0).toUpperCase() || "C"
+              )}
             </div>
             <div>
-              <strong>{currentUser.name || "Customer"}</strong>
-              <span>Customer</span>
+              <strong>{customerDisplayName}</strong>
+              <span>Customer Account</span>
             </div>
           </div>
           <button type="button" className="logout-button" onClick={handleLogout}>
