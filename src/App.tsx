@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Customer from "./pages/Customer";
@@ -15,7 +16,7 @@ function App() {
       <Routes>
         <Route
           path="/"
-          element={<Navigate to="/login" replace />}
+          element={<LandingPage />}
         />
 
         <Route
