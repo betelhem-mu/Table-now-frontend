@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Logo from "../components/Logo";
 import { apiRequest } from "../services/api";
 import { useToast } from "../context/ToastContext";
 import { SettingsDropdown } from "../components/SettingsDropdown";
@@ -163,7 +164,7 @@ const MyBookings = () => {
       {/* Navigation Bar */}
       <nav className="customer-navbar">
         <div className="customer-brand" onClick={() => navigate("/customer")} style={{ cursor: "pointer" }}>
-          <div className="brand-icon">B</div>
+          <Logo size={36} />
           <div>
             <strong>BookEasy</strong>
             <span>Smart booking</span>

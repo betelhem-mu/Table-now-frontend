@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import type { FormEvent, ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import Logo from "../../components/Logo";
 import { apiRequest } from "../../services/api";
 import { useToast } from "../../context/ToastContext";
 import { getServiceImage } from "../../utils/serviceUtils";
@@ -402,8 +403,8 @@ const ProviderDashboard = () => {
     <main className="customer-page">
       {/* Navigation Bar */}
       <nav className="customer-navbar">
-        <div className="customer-brand">
-          <div className="brand-icon">P</div>
+        <div className="customer-brand" onClick={() => navigate("/")} style={{ cursor: "pointer" }}>
+          <Logo size={36} />
           <div>
             <strong>BookEasy Provider</strong>
             <span>Service Management</span>

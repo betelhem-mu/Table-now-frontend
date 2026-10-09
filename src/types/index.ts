@@ -1,10 +1,34 @@
-export type UserRole = "customer" | "provider";
+export type UserRole = "customer" | "provider" | "admin";
 
 export interface User {
   id: string;
   name: string;
   email: string;
   role: UserRole;
+  providerStatus?: "pending" | "approved" | "rejected";
+  isSuspended?: boolean;
+  rejectionReason?: string;
+  createdAt?: string;
+}
+
+export interface ProviderApplication {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  providerStatus: "pending" | "approved" | "rejected";
+  isSuspended: boolean;
+  rejectionReason?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface AdminDashboardStats {
+  totalCustomers: number;
+  totalApprovedProviders: number;
+  pendingProviderApplications: number;
+  totalServices: number;
+  totalBookings: number;
 }
 
 export interface AuthResponse {

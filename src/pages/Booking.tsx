@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import Logo from "../components/Logo";
 import { apiRequest } from "../services/api";
 import { useToast } from "../context/ToastContext";
 import type { Service } from "../types";
@@ -216,7 +217,7 @@ const Booking = () => {
         </button>
 
         <div className="booking-brand" onClick={() => navigate("/customer")} style={{ cursor: "pointer" }}>
-          <div className="brand-icon">B</div>
+          <Logo size={36} />
           <div>
             <strong>BookEasy</strong>
             <span>Smart booking</span>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import Logo from "../components/Logo";
 import { apiRequest } from "../services/api";
 import type { AuthResponse } from "../types";
 
@@ -46,7 +47,9 @@ const Login = () => {
         localStorage.removeItem("rememberMe");
       }
 
-      if (data.user.role === "provider") {
+      if (data.user.role === "admin") {
+        navigate("/admin");
+      } else if (data.user.role === "provider") {
         navigate("/provider");
       } else {
         navigate("/customer");
@@ -68,8 +71,8 @@ const Login = () => {
       <div className="auth-background-glow auth-background-glow-two"></div>
 
       <section className="auth-card">
-        <div className="auth-brand">
-          <div className="brand-icon">B</div>
+        <div className="auth-brand" onClick={() => navigate("/")} style={{ cursor: "pointer" }}>
+          <Logo size={40} />
 
           <div>
             <h1>BookEasy</h1>
