@@ -1,3 +1,5 @@
+import { clearAuthSession } from "../utils/authSession";
+
 const API_URL = "http://localhost:5000/api";
 
 interface RequestOptions extends RequestInit {
@@ -43,8 +45,7 @@ export const apiRequest = async <T>(
   if (!response.ok) {
     const errorMessage = data?.message || `Request failed with status ${response.status}`;
     if (response.status === 401) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
+      clearAuthSession();
       window.dispatchEvent(new CustomEvent("auth:expired", { detail: errorMessage }));
     }
     throw new Error(errorMessage);

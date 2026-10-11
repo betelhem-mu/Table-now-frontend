@@ -4,6 +4,7 @@ import Logo from "../components/Logo";
 import { apiRequest } from "../services/api";
 import { useToast } from "../context/ToastContext";
 import { getServiceImage } from "../utils/serviceUtils";
+import { clearAuthSession, getCurrentUserKey } from "../utils/authSession";
 import type { Booking, Service } from "../types";
 
 interface ServicesResponse {
@@ -37,8 +38,14 @@ const Customer = () => {
   const [selectedService, setSelectedService] = useState<Service | null>(null);
 
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const customerDisplayName = localStorage.getItem("customer_display_name") || user.name || "Customer";
-  const customerProfileImage = localStorage.getItem("customer_profile_image") || "";
+  const userKey = getCurrentUserKey(user);
+  const customerDisplayName =
+    (userKey ? localStorage.getItem(`customer_display_name_${userKey}`) : null) ||
+    user.name ||
+    "Customer";
+  const customerProfileImage = userKey
+    ? (localStorage.getItem(`customer_profile_image_${userKey}`) || "")
+    : "";
 
   useEffect(() => {
     const loadCustomerData = async () => {
@@ -84,8 +91,7 @@ const Customer = () => {
   }, [navigate, addToast]);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    clearAuthSession();
     addToast("Logged out successfully.", "info");
     navigate("/login");
   };

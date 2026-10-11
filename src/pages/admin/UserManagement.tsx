@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import Logo from "../../components/Logo";
 import { apiRequest } from "../../services/api";
 import { useToast } from "../../context/ToastContext";
+import { clearAuthSession } from "../../utils/authSession";
 import type { User, UserRole } from "../../types";
 
 interface UsersResponse {
@@ -71,8 +72,7 @@ const UserManagement = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    clearAuthSession();
     addToast("Logged out successfully.", "info");
     navigate("/login");
   };

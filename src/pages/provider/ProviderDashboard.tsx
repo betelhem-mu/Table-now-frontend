@@ -5,6 +5,7 @@ import Logo from "../../components/Logo";
 import { apiRequest } from "../../services/api";
 import { useToast } from "../../context/ToastContext";
 import { getServiceImage } from "../../utils/serviceUtils";
+import { clearAuthSession } from "../../utils/authSession";
 import type { Booking, Service } from "../../types";
 
 interface ServicesResponse {
@@ -115,10 +116,7 @@ const ProviderDashboard = () => {
   }, [navigate]);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    localStorage.removeItem("provider_display_name");
-    localStorage.removeItem("provider_profile_image");
+    clearAuthSession();
     addToast("Logged out successfully.", "info");
     navigate("/login");
   };

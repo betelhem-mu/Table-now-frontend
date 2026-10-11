@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Logo from "../components/Logo";
 import { apiRequest } from "../services/api";
 import { useToast } from "../context/ToastContext";
+import { clearAuthSession, getCurrentUserKey } from "../utils/authSession";
 import type { Booking, Service, ServiceProvider, User } from "../types";
 
 interface CustomerBookingsResponse {
@@ -16,6 +17,7 @@ const MyBookings = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
   const [activeTab, setActiveTab] = useState<"upcoming" | "history">("upcoming");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -23,8 +25,14 @@ const MyBookings = () => {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
-  const customerDisplayName = localStorage.getItem("customer_display_name") || currentUser.name || "Customer";
-  const customerProfileImage = localStorage.getItem("customer_profile_image") || "";
+  const userKey = getCurrentUserKey(currentUser);
+  const customerDisplayName =
+    (userKey ? localStorage.getItem(`customer_display_name_${userKey}`) : null) ||
+    currentUser.name ||
+    "Customer";
+  const customerProfileImage = userKey
+    ? (localStorage.getItem(`customer_profile_image_${userKey}`) || "")
+    : "";
 
   const loadBookings = async () => {
     try {
@@ -83,8 +91,7 @@ const MyBookings = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    clearAuthSession();
     addToast("Logged out successfully.", "info");
     navigate("/login");
   };
@@ -210,7 +217,7 @@ const MyBookings = () => {
             <h1>My Appointments & Booking History</h1>
             <p>View your scheduled upcoming appointments, modify bookings, or check your past appointment history.</p>
           </div>
-          <button type="button" className="primary-action-btn" onClick={() => navigate("/customer")}>
+          <button type="button" className="my-bookings-action-btn" onClick={() => navigate("/customer")}>
             + Book New Appointment
           </button>
         </div>
@@ -267,6 +274,7 @@ const MyBookings = () => {
           </div>
 
           <div className="bookings-search">
+            <span className="search-icon">🔍</span>
             <input
               type="text"
               placeholder="Search by service or provider..."
@@ -319,15 +327,6 @@ const MyBookings = () => {
                 ? "You haven't booked any upcoming appointments yet."
                 : "Your completed and cancelled bookings will appear here."}
             </p>
-            {activeTab === "upcoming" && !searchQuery && (
-              <button
-                type="button"
-                className="primary-action-btn"
-                onClick={() => navigate("/customer")}
-              >
-                Browse & Book Services Now
-              </button>
-            )}
           </div>
         )}
 

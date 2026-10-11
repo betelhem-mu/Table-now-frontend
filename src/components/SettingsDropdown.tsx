@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { getCurrentUserKey } from "../utils/authSession";
 
 interface SettingsDropdownProps {
   role: "provider" | "customer";
@@ -13,9 +14,10 @@ export const SettingsDropdown = ({ role, defaultName = "", onUpdate }: SettingsD
   const [profileImage, setProfileImage] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  const userKey = getCurrentUserKey();
   const themeKey = `${role}_theme`;
-  const nameKey = `${role}_display_name`;
-  const profileKey = `${role}_profile_image`;
+  const nameKey = userKey ? `${role}_display_name_${userKey}` : `${role}_display_name`;
+  const profileKey = userKey ? `${role}_profile_image_${userKey}` : `${role}_profile_image`;
 
   useEffect(() => {
     const savedTheme = (localStorage.getItem(themeKey) || localStorage.getItem("provider_theme") || "dark") as "dark" | "light";

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Logo from "../components/Logo";
 import { apiRequest } from "../services/api";
 import type { AuthResponse } from "../types";
+import { clearAuthSession } from "../utils/authSession";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -38,12 +39,11 @@ const Login = () => {
         }),
       });
 
+      // Clear any previous session and legacy un-scoped profile keys
+      clearAuthSession();
+
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
-
-      // Clear legacy global un-scoped profile keys so every user sees their own profile
-      localStorage.removeItem("provider_display_name");
-      localStorage.removeItem("provider_profile_image");
 
       if (rememberMe) {
         localStorage.setItem("rememberMe", "true");
