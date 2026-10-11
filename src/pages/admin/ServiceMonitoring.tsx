@@ -84,39 +84,42 @@ const ServiceMonitoring = () => {
   return (
     <div className="customer-container">
       {/* Navigation Header */}
-      <header className="customer-header">
-        <div className="header-left">
-          <div className="brand-logo" onClick={() => navigate("/admin")} style={{ cursor: "pointer" }}>
+      <header className="admin-navbar">
+        <div className="admin-navbar-left">
+          <div className="admin-brand" onClick={() => navigate("/admin")}>
             <Logo size={36} />
-            <span className="brand-name">BookEasy Admin</span>
+            <div>
+              <strong>BookEasy</strong>
+              <span>Admin</span>
+            </div>
           </div>
 
-          <nav className="header-nav">
-            <Link to="/admin" className="nav-item">
+          <nav className="admin-nav-links">
+            <Link to="/admin" className="admin-nav-link">
               Dashboard
             </Link>
-            <Link to="/admin/applications" className="nav-item">
+            <Link to="/admin/applications" className="admin-nav-link">
               Applications
             </Link>
-            <Link to="/admin/users" className="nav-item">
+            <Link to="/admin/users" className="admin-nav-link">
               Users
             </Link>
-            <Link to="/admin/services" className="nav-item active">
+            <Link to="/admin/services" className="admin-nav-link active">
               Services
             </Link>
-            <Link to="/admin/bookings" className="nav-item">
+            <Link to="/admin/bookings" className="admin-nav-link">
               Bookings
             </Link>
           </nav>
         </div>
 
-        <div className="header-right">
-          <div className="user-profile">
-            <span className="user-name">{currentUser.name || "Administrator"}</span>
+        <div className="admin-navbar-right">
+          <div className="admin-user-profile">
+            <span className="admin-user-name">{currentUser.name || "Administrator"}</span>
             <span className="user-role-badge admin">Admin</span>
           </div>
 
-          <button className="logout-btn" onClick={handleLogout} title="Log Out">
+          <button className="logout-button" onClick={handleLogout} title="Log Out">
             Log Out
           </button>
         </div>
@@ -305,7 +308,7 @@ const ServiceMonitoring = () => {
                     >
                       <div>
                         <div style={{ fontSize: "1.25rem", fontWeight: "800", color: service.price === 0 ? "#4ade80" : "#38bdf8" }}>
-                          {service.price === 0 ? "FREE" : `$${service.price.toFixed(2)}`}
+                          {service.price === 0 ? "FREE" : `${service.price.toFixed(2)} ETB`}
                         </div>
                         <div style={{ fontSize: "0.8rem", color: "#64748b" }}>{service.duration} mins</div>
                       </div>

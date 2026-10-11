@@ -41,6 +41,10 @@ const Login = () => {
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
+      // Clear legacy global un-scoped profile keys so every user sees their own profile
+      localStorage.removeItem("provider_display_name");
+      localStorage.removeItem("provider_profile_image");
+
       if (rememberMe) {
         localStorage.setItem("rememberMe", "true");
       } else {

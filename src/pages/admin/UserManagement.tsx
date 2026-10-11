@@ -22,6 +22,7 @@ const UserManagement = () => {
 
   // Modal State
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [deletingUser, setDeletingUser] = useState<User | null>(null);
   const [submittingAction, setSubmittingAction] = useState(false);
 
   const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
@@ -105,42 +106,91 @@ const UserManagement = () => {
     }
   };
 
+  const confirmDeleteUser = async () => {
+    if (!deletingUser) return;
+
+    try {
+      setSubmittingAction(true);
+      const token = localStorage.getItem("token") || "";
+
+      await apiRequest(`/admin/users/${deletingUser.id}`, {
+        method: "DELETE",
+        token,
+      });
+
+      addToast(`Permanently deleted user '${deletingUser.name}' (${deletingUser.email}).`, "info");
+      setDeletingUser(null);
+      loadUsers();
+    } catch (err) {
+      addToast(err instanceof Error ? err.message : "Failed to delete user account.", "error");
+    } finally {
+      setSubmittingAction(false);
+    }
+  };
+
+  const toggleProviderStatus = async (userToUpdate: User, newStatus: "approved" | "rejected") => {
+    try {
+      setSubmittingAction(true);
+      const token = localStorage.getItem("token") || "";
+
+      await apiRequest(`/admin/users/${userToUpdate.id}/provider-status`, {
+        method: "PATCH",
+        token,
+        body: JSON.stringify({ providerStatus: newStatus }),
+      });
+
+      addToast(
+        `Provider status for '${userToUpdate.name}' set to ${newStatus === "approved" ? "Active (Approved)" : "Deactivated"}.`,
+        newStatus === "approved" ? "success" : "warning"
+      );
+
+      loadUsers();
+    } catch (err) {
+      addToast(err instanceof Error ? err.message : "Failed to update provider status.", "error");
+    } finally {
+      setSubmittingAction(false);
+    }
+  };
+
   return (
     <div className="customer-container">
       {/* Navigation Header */}
-      <header className="customer-header">
-        <div className="header-left">
-          <div className="brand-logo" onClick={() => navigate("/admin")} style={{ cursor: "pointer" }}>
+      <header className="admin-navbar">
+        <div className="admin-navbar-left">
+          <div className="admin-brand" onClick={() => navigate("/admin")}>
             <Logo size={36} />
-            <span className="brand-name">BookEasy Admin</span>
+            <div>
+              <strong>BookEasy</strong>
+              <span>Admin</span>
+            </div>
           </div>
 
-          <nav className="header-nav">
-            <Link to="/admin" className="nav-item">
+          <nav className="admin-nav-links">
+            <Link to="/admin" className="admin-nav-link">
               Dashboard
             </Link>
-            <Link to="/admin/applications" className="nav-item">
+            <Link to="/admin/applications" className="admin-nav-link">
               Applications
             </Link>
-            <Link to="/admin/users" className="nav-item active">
+            <Link to="/admin/users" className="admin-nav-link active">
               Users
             </Link>
-            <Link to="/admin/services" className="nav-item">
+            <Link to="/admin/services" className="admin-nav-link">
               Services
             </Link>
-            <Link to="/admin/bookings" className="nav-item">
+            <Link to="/admin/bookings" className="admin-nav-link">
               Bookings
             </Link>
           </nav>
         </div>
 
-        <div className="header-right">
-          <div className="user-profile">
-            <span className="user-name">{currentUser.name || "Administrator"}</span>
+        <div className="admin-navbar-right">
+          <div className="admin-user-profile">
+            <span className="admin-user-name">{currentUser.name || "Administrator"}</span>
             <span className="user-role-badge admin">Admin</span>
           </div>
 
-          <button className="logout-btn" onClick={handleLogout} title="Log Out">
+          <button className="logout-button" onClick={handleLogout} title="Log Out">
             Log Out
           </button>
         </div>
@@ -331,27 +381,70 @@ const UserManagement = () => {
                   </div>
 
                   {/* Actions */}
-                  <div>
+                  <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap" }}>
                     {isCurrentAdmin ? (
                       <span style={{ fontSize: "0.85rem", color: "#64748b", fontStyle: "italic" }}>
                         Current Active Admin
                       </span>
                     ) : (
-                      <button
-                        onClick={() => setSelectedUser(u)}
-                        style={{
-                          background: u.isSuspended ? "linear-gradient(135deg, #10b981, #059669)" : "rgba(244, 63, 94, 0.15)",
-                          color: u.isSuspended ? "#ffffff" : "#f43f5e",
-                          border: u.isSuspended ? "none" : "1px solid rgba(244, 63, 94, 0.3)",
-                          padding: "0.55rem 1.15rem",
-                          borderRadius: "8px",
-                          fontSize: "0.85rem",
-                          fontWeight: "600",
-                          cursor: "pointer",
-                        }}
-                      >
-                        {u.isSuspended ? "Reactivate Account" : "Suspend Account"}
-                      </button>
+                      <>
+                        {/* Provider Active / Deactive Direct Action */}
+                        {u.role === "provider" && (
+                          <button
+                            onClick={() => toggleProviderStatus(u, u.providerStatus === "approved" ? "rejected" : "approved")}
+                            disabled={submittingAction}
+                            style={{
+                              background: u.providerStatus === "approved" ? "rgba(234, 179, 8, 0.15)" : "rgba(34, 197, 94, 0.15)",
+                              color: u.providerStatus === "approved" ? "#eab308" : "#22c55e",
+                              border: u.providerStatus === "approved" ? "1px solid rgba(234, 179, 8, 0.3)" : "1px solid rgba(34, 197, 94, 0.3)",
+                              padding: "0.45rem 0.85rem",
+                              borderRadius: "8px",
+                              fontSize: "0.8rem",
+                              fontWeight: "600",
+                              cursor: "pointer",
+                            }}
+                          >
+                            {u.providerStatus === "approved" ? "Deactivate Provider" : "Activate Provider"}
+                          </button>
+                        )}
+
+                        {/* Suspend / Reactivate Action */}
+                        <button
+                          onClick={() => setSelectedUser(u)}
+                          disabled={submittingAction}
+                          style={{
+                            background: u.isSuspended ? "linear-gradient(135deg, #10b981, #059669)" : "rgba(244, 63, 94, 0.15)",
+                            color: u.isSuspended ? "#ffffff" : "#f43f5e",
+                            border: u.isSuspended ? "none" : "1px solid rgba(244, 63, 94, 0.3)",
+                            padding: "0.45rem 0.85rem",
+                            borderRadius: "8px",
+                            fontSize: "0.8rem",
+                            fontWeight: "600",
+                            cursor: "pointer",
+                          }}
+                        >
+                          {u.isSuspended ? "Reactivate" : "Suspend"}
+                        </button>
+
+                        {/* Delete User Action */}
+                        <button
+                          onClick={() => setDeletingUser(u)}
+                          disabled={submittingAction}
+                          style={{
+                            background: "rgba(239, 68, 68, 0.2)",
+                            color: "#ef4444",
+                            border: "1px solid rgba(239, 68, 68, 0.4)",
+                            padding: "0.45rem 0.85rem",
+                            borderRadius: "8px",
+                            fontSize: "0.8rem",
+                            fontWeight: "600",
+                            cursor: "pointer",
+                          }}
+                          title="Permanently Delete User"
+                        >
+                          Delete
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
@@ -360,7 +453,7 @@ const UserManagement = () => {
           </div>
         )}
 
-        {/* Confirmation Modal */}
+        {/* Suspend / Reactivate Confirmation Modal */}
         {selectedUser && (
           <div className="modal-backdrop" onClick={() => setSelectedUser(null)}>
             <div className="modal-container" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "450px" }}>
@@ -403,6 +496,53 @@ const UserManagement = () => {
                   }}
                 >
                   {submittingAction ? "Processing..." : selectedUser.isSuspended ? "Confirm Reactivation" : "Confirm Suspension"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete User Confirmation Modal */}
+        {deletingUser && (
+          <div className="modal-backdrop" onClick={() => setDeletingUser(null)}>
+            <div className="modal-container" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "450px" }}>
+              <div className="modal-header">
+                <h3 style={{ color: "#f87171" }}>Permanently Delete User</h3>
+                <button className="modal-close" onClick={() => setDeletingUser(null)}>
+                  &times;
+                </button>
+              </div>
+
+              <div className="modal-body" style={{ padding: "1.25rem 0" }}>
+                <p style={{ color: "#cbd5e1", fontSize: "0.95rem" }}>
+                  Are you sure you want to permanently delete user account for{" "}
+                  <strong>{deletingUser.name}</strong> ({deletingUser.email})?
+                </p>
+
+                <p style={{ color: "#f87171", fontSize: "0.85rem", marginTop: "0.75rem", background: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.3)", padding: "0.6rem 0.85rem", borderRadius: "8px" }}>
+                  ⚠️ <strong>Warning:</strong> This action cannot be undone. The account will be permanently removed from the system data store and MongoDB Atlas.
+                </p>
+              </div>
+
+              <div className="modal-actions" style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem" }}>
+                <button type="button" className="cancel-btn" onClick={() => setDeletingUser(null)} disabled={submittingAction}>
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmDeleteUser}
+                  disabled={submittingAction}
+                  style={{
+                    background: "linear-gradient(135deg, #ef4444, #b91c1c)",
+                    color: "#fff",
+                    border: "none",
+                    padding: "0.6rem 1.25rem",
+                    borderRadius: "8px",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                  }}
+                >
+                  {submittingAction ? "Deleting..." : "Permanently Delete"}
                 </button>
               </div>
             </div>

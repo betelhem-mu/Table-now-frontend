@@ -86,41 +86,45 @@ const AdminDashboard = () => {
   return (
     <div className="customer-container">
       {/* Navigation Header */}
-      <header className="customer-header">
-        <div className="header-left">
-          <div className="brand-logo" onClick={() => navigate("/admin")} style={{ cursor: "pointer" }}>
+      <header className="admin-navbar">
+        <div className="admin-navbar-left">
+          <div className="admin-brand" onClick={() => navigate("/admin")}>
             <Logo size={36} />
-            <span className="brand-name">BookEasy Admin</span>
+            <div>
+              <strong>BookEasy</strong>
+              <span>Admin</span>
+            </div>
           </div>
 
-          <nav className="header-nav">
-            <Link to="/admin" className="nav-item active">
+          <nav className="admin-nav-links">
+            <Link to="/admin" className="admin-nav-link active">
               Dashboard
             </Link>
-            <Link to="/admin/applications" className="nav-item">
-              Applications {stats.pendingProviderApplications > 0 && (
+            <Link to="/admin/applications" className="admin-nav-link">
+              Applications{" "}
+              {stats.pendingProviderApplications > 0 && (
                 <span className="badge-count">{stats.pendingProviderApplications}</span>
               )}
             </Link>
-            <Link to="/admin/users" className="nav-item">
+            <Link to="/admin/users" className="admin-nav-link">
               Users
             </Link>
-            <Link to="/admin/services" className="nav-item">
+            <Link to="/admin/services" className="admin-nav-link">
               Services
             </Link>
-            <Link to="/admin/bookings" className="nav-item">
+            <Link to="/admin/bookings" className="admin-nav-link">
               Bookings
             </Link>
           </nav>
         </div>
 
-        <div className="header-right">
-          <div className="user-profile">
-            <span className="user-name">{currentUser.name || "Administrator"}</span>
+        <div className="admin-navbar-right">
+          <div className="admin-user-profile">
+            <span className="admin-user-name">{currentUser.name || "Administrator"}</span>
             <span className="user-role-badge admin">Admin</span>
           </div>
 
-          <button className="logout-btn" onClick={handleLogout} title="Log Out">
+          <button className="logout-button" onClick={handleLogout} title="Log Out">
             Log Out
           </button>
         </div>

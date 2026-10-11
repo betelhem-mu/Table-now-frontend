@@ -23,13 +23,20 @@ const LandingPage: React.FC = () => {
 
   // Check logged in user status
   const userJson = localStorage.getItem("user");
-  const user = userJson ? JSON.parse(userJson) : null;
+  const token = localStorage.getItem("token");
+  const user = userJson && token ? JSON.parse(userJson) : null;
 
   const handleBookAppointment = () => {
-    if (user?.role === "customer") {
-      navigate("/customer");
-    } else {
+    if (!user) {
       navigate("/login");
+      return;
+    }
+    if (user.role === "admin") {
+      navigate("/admin");
+    } else if (user.role === "provider") {
+      navigate("/provider");
+    } else {
+      navigate("/customer");
     }
   };
 
@@ -63,23 +70,12 @@ const LandingPage: React.FC = () => {
             {theme === "dark" ? "☀️ Light" : "🌙 Dark"}
           </button>
 
-          {user ? (
-            <button
-              className="btn-primary-action"
-              onClick={() => navigate(user.role === "provider" ? "/provider" : "/customer")}
-            >
-              Dashboard &rarr;
-            </button>
-          ) : (
-            <>
-              <button className="btn-secondary-action" onClick={() => navigate("/login")}>
-                Login
-              </button>
-              <button className="btn-primary-action" onClick={() => navigate("/register")}>
-                Get Started
-              </button>
-            </>
-          )}
+          <button className="btn-secondary-action" onClick={() => navigate("/login")}>
+            Login
+          </button>
+          <button className="btn-primary-action" onClick={() => navigate("/register")}>
+            Get Started
+          </button>
         </div>
       </nav>
 
@@ -98,11 +94,6 @@ const LandingPage: React.FC = () => {
           Discover the services you need and book your appointments online in just a few clicks. Whether you need a barber, tutor, consultant, or salon service, BookEasy helps you find suitable services and schedule appointments conveniently. Service providers can also create and manage their services, view customer bookings, and organize their schedules in one place.
         </p>
 
-        <div className="hero-btn-group">
-          <button className="btn-hero-primary" onClick={handleBookAppointment}>
-            Book an Appointment
-          </button>
-        </div>
       </section>
 
       {/* 3. Popular Services Section */}

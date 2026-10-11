@@ -248,7 +248,9 @@ const Booking = () => {
             <div className="booking-service-info">
               <div>
                 <span>Price</span>
-                <strong style={{ color: "#e2a15d" }}>${service.price}</strong>
+                <strong style={{ color: service.price === 0 ? "#4ade80" : "#e2a15d" }}>
+                  {service.price === 0 ? "Free" : `${service.price} ETB`}
+                </strong>
               </div>
 
               <div>
@@ -329,7 +331,7 @@ const Booking = () => {
             <div className="booking-summary-box">
               <h4>Appointment Details Summary</h4>
               <p>
-                <strong>Service:</strong> {service.name} (${service.price})
+                <strong>Service:</strong> {service.name} ({service.price === 0 ? "Free" : `${service.price} ETB`})
               </p>
               <p>
                 <strong>Date & Time:</strong> {new Date(`${date}T${time}`).toLocaleString("en-US", {

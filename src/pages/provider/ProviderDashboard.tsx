@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import type { FormEvent, ChangeEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import Logo from "../../components/Logo";
@@ -54,61 +54,20 @@ const ProviderDashboard = () => {
   // Action loading state for completing booking or deleting service
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
-  // Settings panel
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [settingName, setSettingName] = useState("");
-  const [settingProfileImage, setSettingProfileImage] = useState("");
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
-  const settingsRef = useRef<HTMLDivElement>(null);
-
   const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
+  const userKey = currentUser.id || currentUser._id || currentUser.email || "";
+  const profileImage = userKey ? (localStorage.getItem(`provider_profile_image_${userKey}`) || "") : "";
 
-  // Load theme + settings from localStorage
+  // Load theme from localStorage
   useEffect(() => {
     const savedTheme = (localStorage.getItem("provider_theme") || "dark") as "dark" | "light";
-    const savedProfile = localStorage.getItem("provider_profile_image") || "";
-    const savedName = localStorage.getItem("provider_display_name") || currentUser.name || "";
-    setTheme(savedTheme);
-    setSettingProfileImage(savedProfile);
-    setSettingName(savedName);
     document.documentElement.setAttribute("data-theme", savedTheme);
   }, []);
 
-  // Close settings when clicking outside
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (settingsRef.current && !settingsRef.current.contains(e.target as Node)) {
-        setIsSettingsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  const applyTheme = (t: "dark" | "light") => {
-    setTheme(t);
-    localStorage.setItem("provider_theme", t);
-    document.documentElement.setAttribute("data-theme", t);
-  };
-
-  const handleSettingNameSave = () => {
-    localStorage.setItem("provider_display_name", settingName.trim());
-    setIsSettingsOpen(false);
-  };
-
-  const handleSettingProfileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const result = ev.target?.result as string;
-      setSettingProfileImage(result);
-      localStorage.setItem("provider_profile_image", result);
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const displayName = localStorage.getItem("provider_display_name") || currentUser.name || "Service Provider";
+  const displayName =
+    (userKey ? localStorage.getItem(`provider_display_name_${userKey}`) : null) ||
+    currentUser.name ||
+    "Service Provider";
 
   const loadData = async () => {
     try {
@@ -124,9 +83,14 @@ const ProviderDashboard = () => {
       // 1. Fetch provider's services
       const servicesData = await apiRequest<ServicesResponse>("/services", { token });
       const providerServices = (servicesData.services || []).filter((s) => {
-        if (!s.provider) return true;
+        if (!s.provider) return false;
         const providerId = typeof s.provider === "string" ? s.provider : s.provider._id;
-        return providerId === currentUser.id || !providerId;
+        const providerEmail = typeof s.provider === "object" ? s.provider.email : "";
+        return (
+          providerId === currentUser.id ||
+          providerId === currentUser._id ||
+          (providerEmail && providerEmail.toLowerCase() === currentUser.email?.toLowerCase())
+        );
       });
       setServices(providerServices);
 
@@ -153,6 +117,8 @@ const ProviderDashboard = () => {
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    localStorage.removeItem("provider_display_name");
+    localStorage.removeItem("provider_profile_image");
     addToast("Logged out successfully.", "info");
     navigate("/login");
   };
@@ -260,7 +226,7 @@ const ProviderDashboard = () => {
 
     const numPrice = isFree ? 0 : Number(price);
     if (!isFree && (price === "" || Number.isNaN(numPrice) || numPrice < 0)) {
-      setFormError("Please enter a valid price (minimum $0).");
+      setFormError("Please enter a valid price (minimum 0 ETB).");
       return;
     }
 
@@ -413,104 +379,13 @@ const ProviderDashboard = () => {
 
 
         <div className="customer-user-area">
-          {/* Settings gear */}
-          <div className="settings-wrapper" ref={settingsRef}>
-            <button
-              type="button"
-              className="settings-gear-btn"
-              onClick={() => setIsSettingsOpen((o) => !o)}
-              title="Settings"
-            >
-              ⚙️
-            </button>
-
-            {isSettingsOpen && (
-              <div className="settings-dropdown">
-                <div className="settings-section-title">Settings</div>
-
-                {/* Profile Photo */}
-                <div className="settings-section">
-                  <label className="settings-label">Profile Photo</label>
-                  <div className="settings-avatar-row">
-                    <div className="settings-avatar-preview">
-                      {settingProfileImage
-                        ? <img src={settingProfileImage} alt="Profile" />
-                        : <span>{displayName.charAt(0).toUpperCase()}</span>
-                      }
-                    </div>
-                    <label className="settings-upload-btn">
-                      📁 Upload Photo
-                      <input
-                        type="file"
-                        accept="image/*"
-                        style={{ display: "none" }}
-                        onChange={handleSettingProfileUpload}
-                      />
-                    </label>
-                    {settingProfileImage && (
-                      <button
-                        type="button"
-                        className="settings-remove-btn"
-                        onClick={() => { setSettingProfileImage(""); localStorage.removeItem("provider_profile_image"); }}
-                      >
-                        Remove
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Edit Name */}
-                <div className="settings-section">
-                  <label className="settings-label">Display Name</label>
-                  <div className="settings-name-row">
-                    <input
-                      type="text"
-                      className="settings-name-input"
-                      value={settingName}
-                      onChange={(e) => setSettingName(e.target.value)}
-                      placeholder="Your name"
-                    />
-                    <button
-                      type="button"
-                      className="settings-save-btn"
-                      onClick={handleSettingNameSave}
-                    >
-                      Save
-                    </button>
-                  </div>
-                </div>
-
-                {/* Dark / Light Mode */}
-                <div className="settings-section">
-                  <label className="settings-label">Theme</label>
-                  <div className="settings-theme-row">
-                    <button
-                      type="button"
-                      className={`settings-theme-btn ${theme === "dark" ? "active" : ""}`}
-                      onClick={() => applyTheme("dark")}
-                    >
-                      🌙 Dark
-                    </button>
-                    <button
-                      type="button"
-                      className={`settings-theme-btn ${theme === "light" ? "active" : ""}`}
-                      onClick={() => applyTheme("light")}
-                    >
-                      ☀️ Light
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
           <div className="customer-user">
             <div
               className="user-avatar"
-              style={settingProfileImage ? { padding: 0, overflow: "hidden" } : { background: "linear-gradient(135deg, #38bdf8, #1d4ed8)" }}
+              style={profileImage ? { padding: 0, overflow: "hidden" } : { background: "linear-gradient(135deg, #38bdf8, #1d4ed8)" }}
             >
-              {settingProfileImage
-                ? <img src={settingProfileImage} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              {profileImage
+                ? <img src={profileImage} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 : displayName.charAt(0).toUpperCase() || "P"
               }
             </div>
@@ -626,9 +501,6 @@ const ProviderDashboard = () => {
                 <div className="state-icon">🛠️</div>
                 <h3>No services offered yet</h3>
                 <p>Add your first service to start accepting customer bookings.</p>
-                <button type="button" className="primary-action-btn" onClick={openCreateModal}>
-                  + Create First Service
-                </button>
               </div>
             ) : (
               <div className="service-grid">
@@ -659,7 +531,7 @@ const ProviderDashboard = () => {
                         <div>
                           <span>Price</span>
                           <strong style={{ color: service.price === 0 ? "#4ade80" : "#e2a15d" }}>
-                            {service.price === 0 ? "Free" : `$${service.price}`}
+                            {service.price === 0 ? "Free" : `${service.price} ETB`}
                           </strong>
                         </div>
                         <div>
@@ -968,7 +840,7 @@ const ProviderDashboard = () => {
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
                 <div className="form-group">
-                  <label htmlFor="service-price">Price ($) *</label>
+                  <label htmlFor="service-price">Price (ETB) *</label>
                   <input
                     id="service-price"
                     type="number"

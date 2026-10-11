@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import Logo from "../components/Logo";
 import { apiRequest } from "../services/api";
 import { useToast } from "../context/ToastContext";
-import { SettingsDropdown } from "../components/SettingsDropdown";
 import type { Booking, Service, ServiceProvider, User } from "../types";
 
 interface CustomerBookingsResponse {
@@ -19,7 +18,6 @@ const MyBookings = () => {
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState<"upcoming" | "history">("upcoming");
   const [searchQuery, setSearchQuery] = useState("");
-  const [, setSettingVersion] = useState(0);
 
   const [confirmCancelId, setConfirmCancelId] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
@@ -181,12 +179,6 @@ const MyBookings = () => {
         </div>
 
         <div className="customer-user-area">
-          <SettingsDropdown
-            role="customer"
-            defaultName={currentUser.name || "Customer"}
-            onUpdate={() => setSettingVersion((v) => v + 1)}
-          />
-
           <div className="customer-user">
             <div
               className="user-avatar"
@@ -388,7 +380,7 @@ const MyBookings = () => {
 
                     <div className="detail-item">
                       <span className="detail-label">Price</span>
-                      <strong className="detail-value price-tag">${price}</strong>
+                      <strong className="detail-value price-tag">{price === 0 ? "Free" : `${price} ETB`}</strong>
                     </div>
                   </div>
 

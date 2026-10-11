@@ -28,6 +28,9 @@ const ProviderApplications = () => {
   // Approval Modal state
   const [approvingApp, setApprovingApp] = useState<ProviderApplication | null>(null);
 
+  // Delete Modal state
+  const [deletingApp, setDeletingApp] = useState<ProviderApplication | null>(null);
+
   const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
 
   const loadApplications = async () => {
@@ -124,42 +127,66 @@ const ProviderApplications = () => {
     }
   };
 
+  const confirmDeleteApp = async () => {
+    if (!deletingApp) return;
+
+    try {
+      setSubmittingAction(true);
+      const token = localStorage.getItem("token") || "";
+      await apiRequest(`/admin/users/${deletingApp.id}`, {
+        method: "DELETE",
+        token,
+      });
+
+      addToast(`Permanently deleted provider '${deletingApp.name}' (${deletingApp.email}).`, "info");
+      setDeletingApp(null);
+      loadApplications();
+    } catch (err) {
+      addToast(err instanceof Error ? err.message : "Failed to delete provider.", "error");
+    } finally {
+      setSubmittingAction(false);
+    }
+  };
+
   return (
     <div className="customer-container">
       {/* Navigation Header */}
-      <header className="customer-header">
-        <div className="header-left">
-          <div className="brand-logo" onClick={() => navigate("/admin")} style={{ cursor: "pointer" }}>
+      <header className="admin-navbar">
+        <div className="admin-navbar-left">
+          <div className="admin-brand" onClick={() => navigate("/admin")}>
             <Logo size={36} />
-            <span className="brand-name">BookEasy Admin</span>
+            <div>
+              <strong>BookEasy</strong>
+              <span>Admin</span>
+            </div>
           </div>
 
-          <nav className="header-nav">
-            <Link to="/admin" className="nav-item">
+          <nav className="admin-nav-links">
+            <Link to="/admin" className="admin-nav-link">
               Dashboard
             </Link>
-            <Link to="/admin/applications" className="nav-item active">
+            <Link to="/admin/applications" className="admin-nav-link active">
               Applications
             </Link>
-            <Link to="/admin/users" className="nav-item">
+            <Link to="/admin/users" className="admin-nav-link">
               Users
             </Link>
-            <Link to="/admin/services" className="nav-item">
+            <Link to="/admin/services" className="admin-nav-link">
               Services
             </Link>
-            <Link to="/admin/bookings" className="nav-item">
+            <Link to="/admin/bookings" className="admin-nav-link">
               Bookings
             </Link>
           </nav>
         </div>
 
-        <div className="header-right">
-          <div className="user-profile">
-            <span className="user-name">{currentUser.name || "Administrator"}</span>
+        <div className="admin-navbar-right">
+          <div className="admin-user-profile">
+            <span className="admin-user-name">{currentUser.name || "Administrator"}</span>
             <span className="user-role-badge admin">Admin</span>
           </div>
 
-          <button className="logout-btn" onClick={handleLogout} title="Log Out">
+          <button className="logout-button" onClick={handleLogout} title="Log Out">
             Log Out
           </button>
         </div>
@@ -182,7 +209,7 @@ const ProviderApplications = () => {
             display: "flex",
             flexWrap: "wrap",
             gap: "1rem",
-            justify: "space-between",
+            justifyContent: "space-between",
             alignItems: "center",
             marginBottom: "1.75rem",
             background: "rgba(30, 41, 59, 0.6)",
@@ -293,7 +320,7 @@ const ProviderApplications = () => {
                     borderRadius: "14px",
                     padding: "1.25rem 1.5rem",
                     display: "flex",
-                    justify: "space-between",
+                    justifyContent: "space-between",
                     alignItems: "center",
                     flexWrap: "wrap",
                     gap: "1rem",
@@ -388,6 +415,23 @@ const ProviderApplications = () => {
                         Reject
                       </button>
                     )}
+
+                    <button
+                      onClick={() => setDeletingApp(app)}
+                      style={{
+                        background: "rgba(239, 68, 68, 0.2)",
+                        color: "#ef4444",
+                        border: "1px solid rgba(239, 68, 68, 0.4)",
+                        padding: "0.55rem 1.15rem",
+                        borderRadius: "8px",
+                        fontSize: "0.85rem",
+                        fontWeight: "600",
+                        cursor: "pointer",
+                      }}
+                      title="Permanently Delete Provider"
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
               );
@@ -517,6 +561,60 @@ const ProviderApplications = () => {
                   }}
                 >
                   {submittingAction ? "Approving..." : "Confirm Approval"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Provider Modal */}
+        {deletingApp && (
+          <div className="modal-backdrop" onClick={() => setDeletingApp(null)}>
+            <div
+              className="modal-container"
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxWidth: "440px" }}
+            >
+              <div className="modal-header">
+                <h3 style={{ color: "#f87171" }}>Permanently Delete Provider</h3>
+                <button className="modal-close" onClick={() => setDeletingApp(null)}>
+                  &times;
+                </button>
+              </div>
+
+              <div className="modal-body" style={{ padding: "1.25rem 0" }}>
+                <p style={{ color: "#cbd5e1", fontSize: "0.95rem" }}>
+                  Are you sure you want to permanently delete provider account for <strong>{deletingApp.name}</strong> ({deletingApp.email})?
+                </p>
+                <p style={{ color: "#f87171", fontSize: "0.85rem", marginTop: "0.75rem", background: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.3)", padding: "0.6rem 0.85rem", borderRadius: "8px" }}>
+                  ⚠️ <strong>Warning:</strong> This action cannot be undone. The provider will be permanently deleted from the system data store and MongoDB Atlas.
+                </p>
+              </div>
+
+              <div className="modal-actions" style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem" }}>
+                <button
+                  type="button"
+                  className="cancel-btn"
+                  onClick={() => setDeletingApp(null)}
+                  disabled={submittingAction}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmDeleteApp}
+                  disabled={submittingAction}
+                  style={{
+                    background: "linear-gradient(135deg, #ef4444, #b91c1c)",
+                    color: "#fff",
+                    border: "none",
+                    padding: "0.6rem 1.25rem",
+                    borderRadius: "8px",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                  }}
+                >
+                  {submittingAction ? "Deleting..." : "Permanently Delete"}
                 </button>
               </div>
             </div>

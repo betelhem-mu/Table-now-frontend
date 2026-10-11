@@ -4,7 +4,6 @@ import Logo from "../components/Logo";
 import { apiRequest } from "../services/api";
 import { useToast } from "../context/ToastContext";
 import { getServiceImage } from "../utils/serviceUtils";
-import { SettingsDropdown } from "../components/SettingsDropdown";
 import type { Booking, Service } from "../types";
 
 interface ServicesResponse {
@@ -32,7 +31,6 @@ const Customer = () => {
   const [activeBookingsCount, setActiveBookingsCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [, setSettingVersion] = useState(0);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -147,12 +145,6 @@ const Customer = () => {
         </div>
 
         <div className="customer-user-area">
-          <SettingsDropdown
-            role="customer"
-            defaultName={user.name || "Customer"}
-            onUpdate={() => setSettingVersion((v) => v + 1)}
-          />
-
           <div className="customer-user">
             <div
               className="user-avatar"
@@ -362,7 +354,9 @@ const Customer = () => {
                   <div className="service-info">
                     <div>
                       <span>Price</span>
-                      <strong style={{ color: "#e2a15d" }}>${service.price}</strong>
+                      <strong style={{ color: service.price === 0 ? "#4ade80" : "#e2a15d" }}>
+                        {service.price === 0 ? "Free" : `${service.price} ETB`}
+                      </strong>
                     </div>
 
                     <div>
@@ -433,7 +427,9 @@ const Customer = () => {
               <div className="service-modal-stats">
                 <div className="modal-stat">
                   <span>Price</span>
-                  <strong style={{ color: "#e2a15d" }}>${selectedService.price}</strong>
+                  <strong style={{ color: selectedService.price === 0 ? "#4ade80" : "#e2a15d" }}>
+                    {selectedService.price === 0 ? "Free" : `${selectedService.price} ETB`}
+                  </strong>
                 </div>
                 <div className="modal-stat">
                   <span>Duration</span>
