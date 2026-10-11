@@ -112,13 +112,6 @@ const Customer = () => {
 
     return matchesSearch && matchesCategory;
   });
-
-  const getProviderName = (service: Service): string => {
-    if (!service.provider) return "Provider";
-    if (typeof service.provider === "string") return service.provider;
-    return service.provider.name || "Provider";
-  };
-
   return (
     <main className="customer-page">
       {/* Navigation Bar */}
@@ -147,6 +140,13 @@ const Customer = () => {
             onClick={() => navigate("/customer/bookings")}
           >
             My Bookings {activeBookingsCount > 0 && `(${activeBookingsCount})`}
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate("/settings")}
+            title="Account Settings"
+          >
+            Settings
           </button>
         </div>
 
@@ -346,11 +346,6 @@ const Customer = () => {
                 </div>
 
                 <div className="service-card-content">
-                  <div className="service-card-top">
-                    <div className="service-icon">✦</div>
-                    <span className="provider-tag">By {getProviderName(service)}</span>
-                  </div>
-
                   <h3>{service.name}</h3>
 
                   <p className="service-description-preview">
@@ -423,9 +418,6 @@ const Customer = () => {
             </div>
 
             <h2>{selectedService.name}</h2>
-            <p className="service-modal-provider">
-              Provided by <strong>{getProviderName(selectedService)}</strong>
-            </p>
 
             <div className="service-modal-body">
               <p className="service-modal-desc">{selectedService.description}</p>

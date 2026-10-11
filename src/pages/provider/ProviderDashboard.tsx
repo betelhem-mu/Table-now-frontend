@@ -393,6 +393,24 @@ const ProviderDashboard = () => {
             </div>
           </div>
 
+          <button
+            type="button"
+            onClick={() => navigate("/settings")}
+            title="Account Settings"
+            style={{
+              padding: "0.5rem 0.85rem",
+              background: "var(--bg-glass)",
+              border: "1px solid var(--border-medium)",
+              borderRadius: "8px",
+              color: "var(--text-primary)",
+              cursor: "pointer",
+              fontSize: "0.85rem",
+              fontWeight: 600,
+            }}
+          >
+            Settings
+          </button>
+
           <button type="button" className="logout-button" onClick={handleLogout}>
             Logout
           </button>

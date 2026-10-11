@@ -1,15 +1,37 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Logo from "../components/Logo";
+import { apiRequest } from "../services/api";
+import { useToast } from "../context/ToastContext";
+import { getServiceImage } from "../utils/serviceUtils";
+import type { Service } from "../types";
 import "./LandingPage.css";
+
+const CATEGORY_EMOJIS: Record<string, string> = {
+  "Beauty & Wellness": "💆",
+  "Education & Coaching": "🎓",
+  "Tech & Business": "💼",
+  "Health & Fitness": "🏃",
+  "Automotive": "🚗",
+  General: "✦",
+};
+
+const getCategoryEmoji = (category?: string) => {
+  if (!category) return "✦";
+  return CATEGORY_EMOJIS[category] || "✦";
+};
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
+  const { addToast } = useToast();
 
   // Dark / Light theme state linked with system attribute data-theme
-  const [theme, setTheme] = useState<"dark" | "light">(() => {
+  const [theme] = useState<"dark" | "light">(() => {
     return (localStorage.getItem("provider_theme") as "dark" | "light") || "dark";
   });
+
+  const [services, setServices] = useState<Service[]>([]);
+  const [loadingServices, setLoadingServices] = useState(true);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -17,26 +39,63 @@ const LandingPage: React.FC = () => {
     localStorage.setItem("customer_theme", theme);
   }, [theme]);
 
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === "dark" ? "light" : "dark"));
-  };
+  useEffect(() => {
+    let isMounted = true;
+    const fetchServices = async () => {
+      try {
+        setLoadingServices(true);
+        const data = await apiRequest<{ services: Service[] }>("/services");
+        if (isMounted) {
+          setServices(data.services || []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch services for landing page:", err);
+        if (isMounted) {
+          setServices([]);
+        }
+      } finally {
+        if (isMounted) {
+          setLoadingServices(false);
+        }
+      }
+    };
 
-  // Check logged in user status
-  const userJson = localStorage.getItem("user");
-  const token = localStorage.getItem("token");
-  const user = userJson && token ? JSON.parse(userJson) : null;
+    fetchServices();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
-  const handleBookAppointment = () => {
-    if (!user) {
-      navigate("/login");
+  const handleBookService = (serviceId: string) => {
+    const token = localStorage.getItem("token");
+    const userJson = localStorage.getItem("user");
+    let currentUser: { role?: string } | null = null;
+
+    try {
+      if (token && userJson) {
+        currentUser = JSON.parse(userJson);
+      }
+    } catch {
+      currentUser = null;
+    }
+
+    if (!token || !currentUser) {
+      addToast("Please log in to continue booking this service.", "info");
+      navigate("/login", {
+        state: {
+          from: `/services/${serviceId}/book`,
+          message: "Please log in to continue booking this service.",
+        },
+      });
       return;
     }
-    if (user.role === "admin") {
+
+    if (currentUser.role === "admin") {
       navigate("/admin");
-    } else if (user.role === "provider") {
+    } else if (currentUser.role === "provider") {
       navigate("/provider");
     } else {
-      navigate("/customer");
+      navigate(`/services/${serviceId}/book`);
     }
   };
 
@@ -60,16 +119,6 @@ const LandingPage: React.FC = () => {
         </div>
 
         <div className="navbar-right">
-          {/* Theme Toggle Button */}
-          <button
-            type="button"
-            className="landing-theme-toggle"
-            onClick={toggleTheme}
-            title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-          >
-            {theme === "dark" ? "☀️ Light" : "🌙 Dark"}
-          </button>
-
           <button className="btn-secondary-action" onClick={() => navigate("/login")}>
             Login
           </button>
@@ -106,107 +155,52 @@ const LandingPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="services-cards-grid">
-          {/* Service Card 1 */}
-          <div className="service-card">
-            <div className="service-image-header">
-              <img
-                src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=600&q=80"
-                alt="Barber Services"
-                className="service-card-img"
-              />
-              <span className="service-emoji-badge">💈</span>
-            </div>
-            <div className="service-card-body">
-              <div className="service-title-row">
-                <h3>Barber Services</h3>
-              </div>
-              <p className="service-desc">
-                Professional haircuts, beard trimming, line-ups, and modern styling tailored for you.
-              </p>
-              <div className="service-meta-row">
-                <button className="service-book-btn" onClick={handleBookAppointment}>
-                  Book Now
-                </button>
-              </div>
-            </div>
+        {loadingServices ? (
+          <div className="services-loading-state">
+            <div className="landing-spinner"></div>
+            <p>Loading available services...</p>
           </div>
-
-          {/* Service Card 2 */}
-          <div className="service-card">
-            <div className="service-image-header">
-              <img
-                src="https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=600&q=80"
-                alt="Tutoring"
-                className="service-card-img"
-              />
-              <span className="service-emoji-badge">🎓</span>
-            </div>
-            <div className="service-card-body">
-              <div className="service-title-row">
-                <h3>Tutoring</h3>
-              </div>
-              <p className="service-desc">
-                One-on-one academic instruction, coding guidance, and test prep for all student levels.
-              </p>
-              <div className="service-meta-row">
-                <button className="service-book-btn" onClick={handleBookAppointment}>
-                  Book Now
-                </button>
-              </div>
-            </div>
+        ) : services.length === 0 ? (
+          <div className="services-empty-state">
+            <span className="empty-icon">✦</span>
+            <h3>No Services Currently Available</h3>
+            <p>Providers haven't published any services yet. Please check back soon!</p>
           </div>
-
-          {/* Service Card 3 */}
-          <div className="service-card">
-            <div className="service-image-header">
-              <img
-                src="https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&w=600&q=80"
-                alt="Salon Appointments"
-                className="service-card-img"
-              />
-              <span className="service-emoji-badge">💇</span>
-            </div>
-            <div className="service-card-body">
-              <div className="service-title-row">
-                <h3>Salon Appointments</h3>
+        ) : (
+          <div className="services-cards-grid">
+            {services.map((service) => (
+              <div className="service-card" key={service._id}>
+                <div className="service-image-header">
+                  <img
+                    src={getServiceImage(service)}
+                    alt={service.name}
+                    className="service-card-img"
+                    loading="lazy"
+                  />
+                  <span className="service-emoji-badge">
+                    {getCategoryEmoji(service.category)}
+                  </span>
+                </div>
+                <div className="service-card-body">
+                  <div className="service-title-row">
+                    <h3>{service.name}</h3>
+                  </div>
+                  <p className="service-desc">
+                    {service.description || "Professional service available for booking."}
+                  </p>
+                  <div className="service-meta-row">
+                    <button
+                      className="service-book-btn"
+                      onClick={() => handleBookService(service._id)}
+                    >
+                      Book Now
+                    </button>
+                  </div>
+                </div>
               </div>
-              <p className="service-desc">
-                Luxury hair coloring, skin treatments, hair care, and relaxing spa sessions.
-              </p>
-              <div className="service-meta-row">
-                <button className="service-book-btn" onClick={handleBookAppointment}>
-                  Book Now
-                </button>
-              </div>
-            </div>
+            ))}
           </div>
-
-          {/* Service Card 4 */}
-          <div className="service-card">
-            <div className="service-image-header">
-              <img
-                src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=600&q=80"
-                alt="Consulting"
-                className="service-card-img"
-              />
-              <span className="service-emoji-badge">💼</span>
-            </div>
-            <div className="service-card-body">
-              <div className="service-title-row">
-                <h3>Consulting</h3>
-              </div>
-              <p className="service-desc">
-                Expert business strategy, career development advice, and financial planning sessions.
-              </p>
-              <div className="service-meta-row">
-                <button className="service-book-btn" onClick={handleBookAppointment}>
-                  Book Now
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        )}
       </section>
 
       {/* 4. How BookEasy Works Section */}
@@ -272,9 +266,7 @@ const LandingPage: React.FC = () => {
           <div className="footer-col-contact">
             <h4>Contact Us</h4>
             <ul className="contact-list">
-              <li>📧 <span>support@bookeasy.com</span></li>
-              <li>📞 <span>+1 (800) 555-BOOK</span></li>
-              <li>📍 <span>100 Innovation Way, Suite 400</span></li>
+              <li>📧 <span>example@bookeasy.com</span></li>
             </ul>
           </div>
         </div>

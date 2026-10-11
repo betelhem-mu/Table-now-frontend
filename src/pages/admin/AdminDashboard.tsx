@@ -115,6 +115,9 @@ const AdminDashboard = () => {
             <Link to="/admin/bookings" className="admin-nav-link">
               Bookings
             </Link>
+            <Link to="/settings" className="admin-nav-link">
+              Settings
+            </Link>
           </nav>
         </div>
 

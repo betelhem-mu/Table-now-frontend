@@ -183,6 +183,9 @@ const MyBookings = () => {
           <button type="button" className="active-nav-link" onClick={() => navigate("/customer/bookings")}>
             My Bookings
           </button>
+          <button type="button" onClick={() => navigate("/settings")} title="Account Settings">
+            Settings
+          </button>
         </div>
 
         <div className="customer-user-area">

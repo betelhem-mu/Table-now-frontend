@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Logo from "../components/Logo";
 import { apiRequest } from "../services/api";
 import type { AuthResponse } from "../types";
@@ -8,6 +8,7 @@ import { clearAuthSession } from "../utils/authSession";
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -51,12 +52,15 @@ const Login = () => {
         localStorage.removeItem("rememberMe");
       }
 
+      const stateFrom = (location.state as { from?: string | { pathname?: string } })?.from;
+      const redirectPath = typeof stateFrom === "string" ? stateFrom : stateFrom?.pathname;
+
       if (data.user.role === "admin") {
         navigate("/admin");
       } else if (data.user.role === "provider") {
         navigate("/provider");
       } else {
-        navigate("/customer");
+        navigate(redirectPath || "/customer");
       }
     } catch (err) {
       setError(

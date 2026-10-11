@@ -31,6 +31,9 @@ const ServiceMonitoring = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
 
+  const [deletingService, setDeletingService] = useState<Service | null>(null);
+  const [submittingAction, setSubmittingAction] = useState(false);
+
   const currentUser = JSON.parse(localStorage.getItem("user") || "{}");
 
   const loadServices = async () => {
@@ -74,6 +77,28 @@ const ServiceMonitoring = () => {
     localStorage.removeItem("user");
     addToast("Logged out successfully.", "info");
     navigate("/login");
+  };
+
+  const confirmDeleteService = async () => {
+    if (!deletingService) return;
+
+    try {
+      setSubmittingAction(true);
+      const token = localStorage.getItem("token") || "";
+
+      await apiRequest(`/admin/services/${deletingService._id}`, {
+        method: "DELETE",
+        token,
+      });
+
+      addToast(`Permanently deleted service '${deletingService.name}'.`, "info");
+      setDeletingService(null);
+      loadServices();
+    } catch (err) {
+      addToast(err instanceof Error ? err.message : "Failed to delete service.", "error");
+    } finally {
+      setSubmittingAction(false);
+    }
   };
 
   const filteredServices = services.filter((s) => {
@@ -318,10 +343,181 @@ const ServiceMonitoring = () => {
                         {providerEmail && <div style={{ fontSize: "0.75rem", color: "#64748b" }}>{providerEmail}</div>}
                       </div>
                     </div>
+
+                    <div
+                      style={{
+                        marginTop: "1rem",
+                        paddingTop: "0.75rem",
+                        borderTop: "1px solid rgba(255, 255, 255, 0.06)",
+                        display: "flex",
+                        justifyContent: "flex-end",
+                      }}
+                    >
+                      <button
+                        onClick={() => setDeletingService(service)}
+                        disabled={submittingAction}
+                        style={{
+                          background: "rgba(239, 68, 68, 0.12)",
+                          color: "#ef4444",
+                          border: "1px solid rgba(239, 68, 68, 0.3)",
+                          padding: "0.45rem 0.9rem",
+                          borderRadius: "8px",
+                          fontSize: "0.825rem",
+                          fontWeight: "600",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          transition: "all 0.2s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = "rgba(239, 68, 68, 0.22)";
+                          e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.5)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = "rgba(239, 68, 68, 0.12)";
+                          e.currentTarget.style.borderColor = "rgba(239, 68, 68, 0.3)";
+                        }}
+                        title="Permanently Delete Service"
+                      >
+                        Delete Service
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* Permanently Delete Service Confirmation Modal */}
+        {deletingService && (
+          <div className="modal-backdrop" onClick={() => setDeletingService(null)}>
+            <div
+              className="modal-container"
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                maxWidth: "480px",
+                border: "1px solid rgba(239, 68, 68, 0.35)",
+                boxShadow: "0 25px 60px rgba(0, 0, 0, 0.75), 0 0 35px rgba(239, 68, 68, 0.15)",
+              }}
+            >
+              <div className="modal-header">
+                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                  <div
+                    style={{
+                      width: "38px",
+                      height: "38px",
+                      borderRadius: "10px",
+                      background: "rgba(239, 68, 68, 0.15)",
+                      border: "1px solid rgba(239, 68, 68, 0.35)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#f87171",
+                      fontSize: "1.15rem",
+                      flexShrink: 0,
+                    }}
+                  >
+                    ⚠️
+                  </div>
+                  <div>
+                    <h3 style={{ color: "#f87171", margin: 0, fontSize: "1.2rem", fontWeight: "700" }}>
+                      Permanently Delete Service
+                    </h3>
+                    <span style={{ color: "#94a3b8", fontSize: "0.8rem" }}>Admin Critical Action</span>
+                  </div>
+                </div>
+                <button className="modal-close" onClick={() => setDeletingService(null)} title="Close">
+                  &times;
+                </button>
+              </div>
+
+              <div className="modal-body" style={{ padding: "1.25rem 0" }}>
+                <p style={{ color: "#cbd5e1", fontSize: "0.95rem", lineHeight: "1.5", margin: 0 }}>
+                  Are you sure you want to permanently delete the following service from the platform?
+                </p>
+
+                <div
+                  style={{
+                    background: "rgba(15, 23, 42, 0.7)",
+                    padding: "0.85rem 1rem",
+                    borderRadius: "10px",
+                    border: "1px solid rgba(255, 255, 255, 0.08)",
+                    margin: "0.85rem 0",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <div>
+                    <div style={{ color: "#f8fafc", fontWeight: "700", fontSize: "1rem" }}>{deletingService.name}</div>
+                    <div style={{ color: "#94a3b8", fontSize: "0.85rem", marginTop: "2px" }}>
+                      {deletingService.price === 0 ? "Free" : `${deletingService.price.toFixed(2)} ETB`} &bull; {deletingService.duration} mins
+                    </div>
+                  </div>
+                  <span
+                    style={{
+                      padding: "0.2rem 0.65rem",
+                      borderRadius: "9999px",
+                      fontSize: "0.75rem",
+                      fontWeight: "700",
+                      background: "rgba(168, 85, 247, 0.15)",
+                      color: "#c084fc",
+                    }}
+                  >
+                    {deletingService.category || "General"}
+                  </span>
+                </div>
+
+                <div
+                  style={{
+                    color: "#fca5a5",
+                    fontSize: "0.85rem",
+                    lineHeight: "1.5",
+                    background: "rgba(239, 68, 68, 0.12)",
+                    border: "1px solid rgba(239, 68, 68, 0.3)",
+                    padding: "0.75rem 1rem",
+                    borderRadius: "10px",
+                    display: "flex",
+                    gap: "0.5rem",
+                    alignItems: "flex-start",
+                  }}
+                >
+                  <span style={{ fontSize: "1rem" }}>⚠️</span>
+                  <div>
+                    <strong>Warning:</strong> This action cannot be undone. The service will be permanently deleted from the active catalog and database.
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-actions" style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem", borderTop: "1px solid rgba(255, 255, 255, 0.08)", paddingTop: "1rem" }}>
+                <button type="button" className="cancel-btn" onClick={() => setDeletingService(null)} disabled={submittingAction}>
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmDeleteService}
+                  disabled={submittingAction}
+                  style={{
+                    background: "linear-gradient(135deg, #ef4444, #b91c1c)",
+                    color: "#fff",
+                    border: "none",
+                    padding: "0.6rem 1.25rem",
+                    borderRadius: "8px",
+                    fontWeight: "600",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    boxShadow: "0 4px 15px rgba(239, 68, 68, 0.35)",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  {submittingAction ? "Deleting..." : "Permanently Delete"}
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </main>

@@ -11,6 +11,7 @@ import ProviderApplications from "./pages/admin/ProviderApplications";
 import UserManagement from "./pages/admin/UserManagement";
 import ServiceMonitoring from "./pages/admin/ServiceMonitoring";
 import BookingMonitoring from "./pages/admin/BookingMonitoring";
+import Settings from "./pages/Settings";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { ToastProvider } from "./context/ToastContext";
 import "./App.css";
@@ -112,6 +113,15 @@ function App() {
           element={
             <ProtectedRoute allowedRole="admin">
               <BookingMonitoring />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute allowedRole={["customer", "provider", "admin"]}>
+              <Settings />
             </ProtectedRoute>
           }
         />

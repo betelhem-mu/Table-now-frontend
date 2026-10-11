@@ -505,26 +505,104 @@ const UserManagement = () => {
         {/* Delete User Confirmation Modal */}
         {deletingUser && (
           <div className="modal-backdrop" onClick={() => setDeletingUser(null)}>
-            <div className="modal-container" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "450px" }}>
+            <div
+              className="modal-container"
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                maxWidth: "480px",
+                border: "1px solid rgba(239, 68, 68, 0.35)",
+                boxShadow: "0 25px 60px rgba(0, 0, 0, 0.75), 0 0 35px rgba(239, 68, 68, 0.15)",
+              }}
+            >
               <div className="modal-header">
-                <h3 style={{ color: "#f87171" }}>Permanently Delete User</h3>
-                <button className="modal-close" onClick={() => setDeletingUser(null)}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                  <div
+                    style={{
+                      width: "38px",
+                      height: "38px",
+                      borderRadius: "10px",
+                      background: "rgba(239, 68, 68, 0.15)",
+                      border: "1px solid rgba(239, 68, 68, 0.35)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#f87171",
+                      fontSize: "1.15rem",
+                      flexShrink: 0,
+                    }}
+                  >
+                    ⚠️
+                  </div>
+                  <div>
+                    <h3 style={{ color: "#f87171", margin: 0, fontSize: "1.2rem", fontWeight: "700" }}>
+                      Permanently Delete User
+                    </h3>
+                    <span style={{ color: "#94a3b8", fontSize: "0.8rem" }}>Admin Critical Action</span>
+                  </div>
+                </div>
+                <button className="modal-close" onClick={() => setDeletingUser(null)} title="Close">
                   &times;
                 </button>
               </div>
 
               <div className="modal-body" style={{ padding: "1.25rem 0" }}>
-                <p style={{ color: "#cbd5e1", fontSize: "0.95rem" }}>
-                  Are you sure you want to permanently delete user account for{" "}
-                  <strong>{deletingUser.name}</strong> ({deletingUser.email})?
+                <p style={{ color: "#cbd5e1", fontSize: "0.95rem", lineHeight: "1.5", margin: 0 }}>
+                  Are you sure you want to permanently delete the account for:
                 </p>
 
-                <p style={{ color: "#f87171", fontSize: "0.85rem", marginTop: "0.75rem", background: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.3)", padding: "0.6rem 0.85rem", borderRadius: "8px" }}>
-                  ⚠️ <strong>Warning:</strong> This action cannot be undone. The account will be permanently removed from the system data store and MongoDB Atlas.
-                </p>
+                <div
+                  style={{
+                    background: "rgba(15, 23, 42, 0.7)",
+                    padding: "0.85rem 1rem",
+                    borderRadius: "10px",
+                    border: "1px solid rgba(255, 255, 255, 0.08)",
+                    margin: "0.85rem 0",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <div>
+                    <div style={{ color: "#f8fafc", fontWeight: "700", fontSize: "1rem" }}>{deletingUser.name}</div>
+                    <div style={{ color: "#94a3b8", fontSize: "0.85rem", marginTop: "2px" }}>{deletingUser.email}</div>
+                  </div>
+                  <span
+                    style={{
+                      padding: "0.2rem 0.65rem",
+                      borderRadius: "9999px",
+                      fontSize: "0.75rem",
+                      fontWeight: "700",
+                      textTransform: "uppercase",
+                      background: "rgba(148, 163, 184, 0.15)",
+                      color: "#cbd5e1",
+                    }}
+                  >
+                    {deletingUser.role}
+                  </span>
+                </div>
+
+                <div
+                  style={{
+                    color: "#fca5a5",
+                    fontSize: "0.85rem",
+                    lineHeight: "1.5",
+                    background: "rgba(239, 68, 68, 0.12)",
+                    border: "1px solid rgba(239, 68, 68, 0.3)",
+                    padding: "0.75rem 1rem",
+                    borderRadius: "10px",
+                    display: "flex",
+                    gap: "0.5rem",
+                    alignItems: "flex-start",
+                  }}
+                >
+                  <span style={{ fontSize: "1rem" }}>⚠️</span>
+                  <div>
+                    <strong>Warning:</strong> This action cannot be undone. The account will be permanently removed from the system data store and MongoDB Atlas.
+                  </div>
+                </div>
               </div>
 
-              <div className="modal-actions" style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem" }}>
+              <div className="modal-actions" style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem", borderTop: "1px solid rgba(255, 255, 255, 0.08)", paddingTop: "1rem" }}>
                 <button type="button" className="cancel-btn" onClick={() => setDeletingUser(null)} disabled={submittingAction}>
                   Cancel
                 </button>
@@ -540,6 +618,11 @@ const UserManagement = () => {
                     borderRadius: "8px",
                     fontWeight: "600",
                     cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    boxShadow: "0 4px 15px rgba(239, 68, 68, 0.35)",
+                    transition: "all 0.2s ease",
                   }}
                 >
                   {submittingAction ? "Deleting..." : "Permanently Delete"}
