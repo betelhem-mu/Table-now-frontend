@@ -31,6 +31,7 @@ const Settings: React.FC = () => {
   const [userRole, setUserRole] = useState<"customer" | "provider" | "admin">("customer");
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileError, setProfileError] = useState("");
+  const [profileSuccess, setProfileSuccess] = useState("");
 
   const [selectedTheme, setSelectedTheme] = useState<ThemeMode>(() => {
     return (localStorage.getItem("app_theme") as ThemeMode) || "system";
@@ -126,6 +127,7 @@ const Settings: React.FC = () => {
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setProfileError("");
+    setProfileSuccess("");
 
     if (!name.trim()) {
       setProfileError("Full name is required.");
@@ -167,9 +169,11 @@ const Settings: React.FC = () => {
       }
 
       addToast("Profile updated successfully!", "success");
+      setProfileSuccess("Profile updated successfully!");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Failed to update profile.";
       setProfileError(msg);
+      setProfileSuccess("");
       addToast(msg, "error");
     } finally {
       setProfileSaving(false);
@@ -373,6 +377,21 @@ const Settings: React.FC = () => {
                       Update your account details and contact information.
                     </p>
                   </div>
+
+                  {profileSuccess && (
+                    <div className="profile-success-banner" role="status">
+                      <span className="profile-success-icon">✓</span>
+                      <span className="profile-success-text">{profileSuccess}</span>
+                      <button
+                        type="button"
+                        className="profile-success-close"
+                        onClick={() => setProfileSuccess("")}
+                        aria-label="Dismiss notification"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
 
                   <form onSubmit={handleProfileSubmit} className="settings-form">
                     {profileError && (

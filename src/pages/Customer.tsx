@@ -4,7 +4,7 @@ import Logo from "../components/Logo";
 import { apiRequest } from "../services/api";
 import { useToast } from "../context/ToastContext";
 import { getServiceImage } from "../utils/serviceUtils";
-import { clearAuthSession, getCurrentUserKey } from "../utils/authSession";
+import { getCurrentUserKey } from "../utils/authSession";
 import type { Booking, Service } from "../types";
 
 interface ServicesResponse {
@@ -90,11 +90,6 @@ const Customer = () => {
     loadCustomerData();
   }, [navigate, addToast]);
 
-  const handleLogout = () => {
-    clearAuthSession();
-    addToast("Logged out successfully.", "info");
-    navigate("/login");
-  };
 
   const scrollToServices = () => {
     document.getElementById("services")?.scrollIntoView({ behavior: "smooth" });
@@ -167,14 +162,6 @@ const Customer = () => {
               <span>Customer Account</span>
             </div>
           </div>
-
-          <button
-            type="button"
-            className="logout-button"
-            onClick={handleLogout}
-          >
-            Logout
-          </button>
         </div>
       </nav>
 

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Logo from "../components/Logo";
 import { apiRequest } from "../services/api";
 import { useToast } from "../context/ToastContext";
-import { clearAuthSession, getCurrentUserKey } from "../utils/authSession";
+import { getCurrentUserKey } from "../utils/authSession";
 import type { Booking, Service, ServiceProvider, User } from "../types";
 
 interface CustomerBookingsResponse {
@@ -90,11 +90,6 @@ const MyBookings = () => {
     }
   };
 
-  const handleLogout = () => {
-    clearAuthSession();
-    addToast("Logged out successfully.", "info");
-    navigate("/login");
-  };
 
   const getServiceName = (service: string | Service): string => {
     if (typeof service === "string") return "Service";
@@ -205,9 +200,6 @@ const MyBookings = () => {
               <span>Customer Account</span>
             </div>
           </div>
-          <button type="button" className="logout-button" onClick={handleLogout}>
-            Logout
-          </button>
         </div>
       </nav>
 

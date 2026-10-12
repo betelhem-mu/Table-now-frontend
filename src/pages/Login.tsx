@@ -14,7 +14,6 @@ const Login = () => {
   const [password, setPassword] = useState("");
 
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -46,11 +45,7 @@ const Login = () => {
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
 
-      if (rememberMe) {
-        localStorage.setItem("rememberMe", "true");
-      } else {
-        localStorage.removeItem("rememberMe");
-      }
+
 
       const stateFrom = (location.state as { from?: string | { pathname?: string } })?.from;
       const redirectPath = typeof stateFrom === "string" ? stateFrom : stateFrom?.pathname;
@@ -147,15 +142,7 @@ const Login = () => {
             </div>
           </div>
 
-          <label className="remember-row">
-            <input
-              type="checkbox"
-              checked={rememberMe}
-              onChange={(event) => setRememberMe(event.target.checked)}
-            />
 
-            <span>Remember me</span>
-          </label>
 
           {error && (
             <div className="auth-error" role="alert">

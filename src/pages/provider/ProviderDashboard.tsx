@@ -5,7 +5,6 @@ import Logo from "../../components/Logo";
 import { apiRequest } from "../../services/api";
 import { useToast } from "../../context/ToastContext";
 import { getServiceImage } from "../../utils/serviceUtils";
-import { clearAuthSession } from "../../utils/authSession";
 import type { Booking, Service } from "../../types";
 
 interface ServicesResponse {
@@ -114,12 +113,6 @@ const ProviderDashboard = () => {
   useEffect(() => {
     loadData();
   }, [navigate]);
-
-  const handleLogout = () => {
-    clearAuthSession();
-    addToast("Logged out successfully.", "info");
-    navigate("/login");
-  };
 
   // Handle file upload -> convert & compress to Base64
   const handleImageFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
@@ -409,10 +402,6 @@ const ProviderDashboard = () => {
             }}
           >
             Settings
-          </button>
-
-          <button type="button" className="logout-button" onClick={handleLogout}>
-            Logout
           </button>
         </div>
       </nav>

@@ -13,6 +13,7 @@ export const clearAuthSession = (): void => {
   localStorage.removeItem("customer_profile_image");
   localStorage.removeItem("provider_display_name");
   localStorage.removeItem("provider_profile_image");
+  localStorage.removeItem("rememberMe");
 };
 
 export const getCurrentUser = (): any => {

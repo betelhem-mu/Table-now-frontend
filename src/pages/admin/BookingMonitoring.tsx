@@ -60,12 +60,6 @@ const BookingMonitoring = () => {
     loadBookings();
   }, [statusFilter, dateFilter]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    addToast("Logged out successfully.", "info");
-    navigate("/login");
-  };
 
   return (
     <div className="customer-container">
@@ -104,10 +98,6 @@ const BookingMonitoring = () => {
             <span className="admin-user-name">{currentUser.name || "Administrator"}</span>
             <span className="user-role-badge admin">Admin</span>
           </div>
-
-          <button className="logout-button" onClick={handleLogout} title="Log Out">
-            Log Out
-          </button>
         </div>
       </header>
 

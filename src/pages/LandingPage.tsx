@@ -66,19 +66,24 @@ const LandingPage: React.FC = () => {
     };
   }, []);
 
-  const handleBookService = (serviceId: string) => {
-    const token = localStorage.getItem("token");
-    const userJson = localStorage.getItem("user");
-    let currentUser: { role?: string } | null = null;
-
-    try {
-      if (token && userJson) {
-        currentUser = JSON.parse(userJson);
-      }
-    } catch {
-      currentUser = null;
+  const token = localStorage.getItem("token");
+  const userJson = localStorage.getItem("user");
+  let currentUser: { role?: string; name?: string } | null = null;
+  try {
+    if (token && userJson) {
+      currentUser = JSON.parse(userJson);
     }
+  } catch {
+    currentUser = null;
+  }
 
+  const getDashboardPath = () => {
+    if (currentUser?.role === "admin") return "/admin";
+    if (currentUser?.role === "provider") return "/provider";
+    return "/customer";
+  };
+
+  const handleBookService = (serviceId: string) => {
     if (!token || !currentUser) {
       addToast("Please log in to continue booking this service.", "info");
       navigate("/login", {
@@ -119,12 +124,20 @@ const LandingPage: React.FC = () => {
         </div>
 
         <div className="navbar-right">
-          <button className="btn-secondary-action" onClick={() => navigate("/login")}>
-            Login
-          </button>
-          <button className="btn-primary-action" onClick={() => navigate("/register")}>
-            Get Started
-          </button>
+          {currentUser ? (
+            <button className="btn-primary-action" onClick={() => navigate(getDashboardPath())}>
+              Go to Dashboard &rarr;
+            </button>
+          ) : (
+            <>
+              <button className="btn-secondary-action" onClick={() => navigate("/login")}>
+                Login
+              </button>
+              <button className="btn-primary-action" onClick={() => navigate("/register")}>
+                Get Started
+              </button>
+            </>
+          )}
         </div>
       </nav>
 
@@ -258,8 +271,14 @@ const LandingPage: React.FC = () => {
               <li><a href="#home">Home</a></li>
               <li><a href="#how-it-works">How It Works</a></li>
               <li><a href="#services">Services</a></li>
-              <li><a href="/login" onClick={(e) => { e.preventDefault(); navigate("/login"); }}>Login</a></li>
-              <li><a href="/register" onClick={(e) => { e.preventDefault(); navigate("/register"); }}>Get Started</a></li>
+              {currentUser ? (
+                <li><a href={getDashboardPath()} onClick={(e) => { e.preventDefault(); navigate(getDashboardPath()); }}>Dashboard</a></li>
+              ) : (
+                <>
+                  <li><a href="/login" onClick={(e) => { e.preventDefault(); navigate("/login"); }}>Login</a></li>
+                  <li><a href="/register" onClick={(e) => { e.preventDefault(); navigate("/register"); }}>Get Started</a></li>
+                </>
+              )}
             </ul>
           </div>
 

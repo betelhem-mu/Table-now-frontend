@@ -3,7 +3,6 @@ import { useNavigate, Link } from "react-router-dom";
 import Logo from "../../components/Logo";
 import { apiRequest } from "../../services/api";
 import { useToast } from "../../context/ToastContext";
-import { clearAuthSession } from "../../utils/authSession";
 import type { User, UserRole } from "../../types";
 
 interface UsersResponse {
@@ -22,7 +21,6 @@ const UserManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   // Modal State
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
   const [submittingAction, setSubmittingAction] = useState(false);
 
@@ -71,40 +69,7 @@ const UserManagement = () => {
     loadUsers();
   };
 
-  const handleLogout = () => {
-    clearAuthSession();
-    addToast("Logged out successfully.", "info");
-    navigate("/login");
-  };
 
-  const toggleUserSuspension = async () => {
-    if (!selectedUser) return;
-
-    const newSuspendedState = !selectedUser.isSuspended;
-
-    try {
-      setSubmittingAction(true);
-      const token = localStorage.getItem("token") || "";
-
-      await apiRequest(`/admin/users/${selectedUser.id}/status`, {
-        method: "PATCH",
-        token,
-        body: JSON.stringify({ isSuspended: newSuspendedState }),
-      });
-
-      addToast(
-        `User ${selectedUser.name} account ${newSuspendedState ? "suspended" : "reactivated"} successfully!`,
-        newSuspendedState ? "info" : "success"
-      );
-
-      setSelectedUser(null);
-      loadUsers();
-    } catch (err) {
-      addToast(err instanceof Error ? err.message : "Failed to update user status.", "error");
-    } finally {
-      setSubmittingAction(false);
-    }
-  };
 
   const confirmDeleteUser = async () => {
     if (!deletingUser) return;
@@ -189,10 +154,6 @@ const UserManagement = () => {
             <span className="admin-user-name">{currentUser.name || "Administrator"}</span>
             <span className="user-role-badge admin">Admin</span>
           </div>
-
-          <button className="logout-button" onClick={handleLogout} title="Log Out">
-            Log Out
-          </button>
         </div>
       </header>
 
@@ -408,23 +369,6 @@ const UserManagement = () => {
                           </button>
                         )}
 
-                        {/* Suspend / Reactivate Action */}
-                        <button
-                          onClick={() => setSelectedUser(u)}
-                          disabled={submittingAction}
-                          style={{
-                            background: u.isSuspended ? "linear-gradient(135deg, #10b981, #059669)" : "rgba(244, 63, 94, 0.15)",
-                            color: u.isSuspended ? "#ffffff" : "#f43f5e",
-                            border: u.isSuspended ? "none" : "1px solid rgba(244, 63, 94, 0.3)",
-                            padding: "0.45rem 0.85rem",
-                            borderRadius: "8px",
-                            fontSize: "0.8rem",
-                            fontWeight: "600",
-                            cursor: "pointer",
-                          }}
-                        >
-                          {u.isSuspended ? "Reactivate" : "Suspend"}
-                        </button>
 
                         {/* Delete User Action */}
                         <button
@@ -453,54 +397,6 @@ const UserManagement = () => {
           </div>
         )}
 
-        {/* Suspend / Reactivate Confirmation Modal */}
-        {selectedUser && (
-          <div className="modal-backdrop" onClick={() => setSelectedUser(null)}>
-            <div className="modal-container" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "450px" }}>
-              <div className="modal-header">
-                <h3>{selectedUser.isSuspended ? "Reactivate User Account" : "Suspend User Account"}</h3>
-                <button className="modal-close" onClick={() => setSelectedUser(null)}>
-                  &times;
-                </button>
-              </div>
-
-              <div className="modal-body" style={{ padding: "1.25rem 0" }}>
-                <p style={{ color: "#cbd5e1", fontSize: "0.95rem" }}>
-                  Are you sure you want to {selectedUser.isSuspended ? "reactivate" : "suspend"} the account for{" "}
-                  <strong>{selectedUser.name}</strong> ({selectedUser.email})?
-                </p>
-
-                {!selectedUser.isSuspended && (
-                  <p style={{ color: "#f87171", fontSize: "0.85rem", marginTop: "0.75rem", background: "rgba(239, 68, 68, 0.1)", padding: "0.5rem 0.75rem", borderRadius: "6px" }}>
-                    Suspended users will be immediately prevented from logging in or performing any platform actions.
-                  </p>
-                )}
-              </div>
-
-              <div className="modal-actions" style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem" }}>
-                <button type="button" className="cancel-btn" onClick={() => setSelectedUser(null)} disabled={submittingAction}>
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={toggleUserSuspension}
-                  disabled={submittingAction}
-                  style={{
-                    background: selectedUser.isSuspended ? "linear-gradient(135deg, #10b981, #059669)" : "linear-gradient(135deg, #ef4444, #dc2626)",
-                    color: "#fff",
-                    border: "none",
-                    padding: "0.6rem 1.25rem",
-                    borderRadius: "8px",
-                    fontWeight: "600",
-                    cursor: "pointer",
-                  }}
-                >
-                  {submittingAction ? "Processing..." : selectedUser.isSuspended ? "Confirm Reactivation" : "Confirm Suspension"}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Delete User Confirmation Modal */}
         {deletingUser && (
