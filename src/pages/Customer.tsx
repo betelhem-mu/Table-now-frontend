@@ -179,22 +179,7 @@ const Customer = () => {
             Welcome back, <strong>{user.name || "Customer"}</strong>! Browse top-rated services from verified providers and manage your appointments seamlessly.
           </p>
 
-          <div className="hero-cta-group">
-            <button
-              type="button"
-              className="hero-action"
-              onClick={scrollToServices}
-            >
-              Explore services <span>→</span>
-            </button>
-            <button
-              type="button"
-              className="hero-secondary-action"
-              onClick={() => navigate("/customer/bookings")}
-            >
-              View My Appointments
-            </button>
-          </div>
+
         </div>
 
         <div className="hero-decoration">

@@ -717,7 +717,7 @@
    HERO BANNER
 --------------------------------------------------------- */
 .customer-hero {
-  padding: 60px 6%;
+  padding: 36px 6%;
   display: grid;
   grid-template-columns: 1.2fr 0.8fr;
   gap: 40px;
@@ -729,14 +729,14 @@
 @media (max-width: 900px) {
   .customer-hero {
     grid-template-columns: 1fr;
-    padding: 40px 5%;
+    padding: 28px 5%;
   }
 }
 
 .customer-hero-content {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .hero-badge {
@@ -820,6 +820,80 @@
   background: rgba(255, 255, 255, 0.08);
   border-color: var(--border-focus);
 }
+
+/* ---------------------------------------------------------
+   CREATE NEW SERVICE BUTTON (Provider Dashboard)
+--------------------------------------------------------- */
+.create-service-btn {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 28px;
+  height: 48px;
+  border: none;
+  border-radius: 14px;
+  background: var(--accent-gradient);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  box-shadow: 0 6px 22px rgba(245, 158, 11, 0.35), 0 0 0 0 rgba(245, 158, 11, 0);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* shimmer sweep */
+.create-service-btn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.22) 50%, transparent 100%);
+  transform: skewX(-20deg);
+  transition: left 0.55s ease;
+}
+
+.create-service-btn:hover::before {
+  left: 125%;
+}
+
+.create-service-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(245, 158, 11, 0.45), 0 0 0 4px rgba(245, 158, 11, 0.12);
+  filter: brightness(1.08);
+}
+
+.create-service-btn:active {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(245, 158, 11, 0.3);
+}
+
+.create-service-icon {
+  font-size: 14px;
+  animation: spinPulse 3s ease-in-out infinite;
+}
+
+@keyframes spinPulse {
+  0%, 100% { transform: rotate(0deg) scale(1); opacity: 1; }
+  50%       { transform: rotate(180deg) scale(1.25); opacity: 0.8; }
+}
+
+.create-service-arrow {
+  font-size: 16px;
+  transition: transform 0.25s ease;
+  display: inline-block;
+}
+
+.create-service-btn:hover .create-service-arrow {
+  transform: translateX(4px);
+}
+
 
 .hero-decoration {
   position: relative;

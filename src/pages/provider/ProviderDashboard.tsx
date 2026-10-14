@@ -418,8 +418,10 @@ const ProviderDashboard = () => {
             </p>
           </div>
 
-          <button type="button" className="primary-action-btn" onClick={openCreateModal}>
-            + Create New Service
+          <button type="button" className="create-service-btn" onClick={openCreateModal}>
+            <span className="create-service-icon">✦</span>
+            Create New Service
+            <span className="create-service-arrow">→</span>
           </button>
         </div>
 
